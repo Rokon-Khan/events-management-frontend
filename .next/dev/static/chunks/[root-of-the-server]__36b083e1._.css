@@ -5318,12 +5318,12 @@
   }
 
   @supports ((-webkit-backdrop-filter: var(--tw)) or (backdrop-filter: var(--tw))) {
-    .supports-\[backdrop-filter\]\:bg-background\/60 {
+    .supports-backdrop-filter\:bg-background\/60 {
       background-color: var(--background);
     }
 
     @supports (color: color-mix(in lab, red, red)) {
-      .supports-\[backdrop-filter\]\:bg-background\/60 {
+      .supports-backdrop-filter\:bg-background\/60 {
         background-color: color-mix(in oklab, var(--background) 60%, transparent);
       }
     }
@@ -6746,8 +6746,8 @@
   --sidebar-accent-foreground: #eceef5;
   --sidebar-border: #1a2135;
   --sidebar-ring: #4055ff;
-  --glow-primary: #4055ff;
-  --glow-accent: #0065b4;
+  --glow-primary: #696eff;
+  --glow-accent: #7f00ff;
 }
 
 @supports (color: lab(0% 0 0)) {
@@ -6784,8 +6784,8 @@
     --sidebar-accent-foreground: lab(94.1452% .0689626 -3.78722);
     --sidebar-border: lab(12.6688% 2.11811 -14.482);
     --sidebar-ring: lab(43.9452% 38.4761 -88.5684);
-    --glow-primary: lab(43.9452% 38.4761 -88.5684);
-    --glow-accent: lab(40.409% 5.45853 -66.4608);
+    --glow-primary: lab(52.274% 30.7024 -74.3934);
+    --glow-accent: lab(39.2197% 74.5936 -95.6612);
   }
 }
 
@@ -6823,7 +6823,7 @@
   --sidebar-border: #151a29;
   --sidebar-ring: #6382ff;
   --glow-primary: #516eff;
-  --glow-accent: #0073cd;
+  --glow-accent: #7f00ff;
 }
 
 @supports (color: lab(0% 0 0)) {
@@ -6861,7 +6861,7 @@
     --sidebar-border: lab(9.2858% 1.3606 -10.9144);
     --sidebar-ring: lab(56.6947% 24.8757 -78.0723);
     --glow-primary: lab(50.0131% 35.1186 -88.5475);
-    --glow-accent: lab(46.0499% 6.00439 -73.1069);
+    --glow-accent: lab(39.2197% 74.5936 -95.6612);
   }
 }
 

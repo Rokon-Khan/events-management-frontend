@@ -39,8 +39,11 @@
   --sidebar-ring: oklch(0.55 0.25 270);
 
   /* Custom glow colors */
-  --glow-primary: oklch(0.55 0.25 270);
-  --glow-accent: oklch(0.5 0.2 250);
+  /* --glow-primary: oklch(0.55 0.25 270);
+  --glow-accent: oklch(0.5 0.2 250); */
+  /* Custom glow colors */
+  --glow-primary: oklch(0.6137 0.211 276.72);
+  --glow-accent: oklch(0.5294 0.293075 293.6103);
 }
 
 .dark {
@@ -78,8 +81,11 @@
   --sidebar-ring: oklch(0.65 0.22 270);
 
   /* Custom glow colors */
+  /* --glow-primary: oklch(0.6 0.25 270);
+  --glow-accent: oklch(0.55 0.22 250); */
+  /* Custom glow colors */
   --glow-primary: oklch(0.6 0.25 270);
-  --glow-accent: oklch(0.55 0.22 250);
+  --glow-accent: oklch(0.5294 0.293075 293.6103);
 }
 
 @theme inline {
@@ -156,12 +162,18 @@
 }
 
 .card-glow:hover::before {
-  background: linear-gradient(135deg, var(--glow-primary), var(--glow-accent), var(--glow-primary));
+  background: linear-gradient(
+    135deg,
+    var(--glow-primary),
+    var(--glow-accent),
+    var(--glow-primary)
+  );
   opacity: 1;
 }
 
 .card-glow:hover {
-  box-shadow: 0 0 20px -5px var(--glow-primary), 0 0 40px -10px var(--glow-accent), 0 10px 30px -10px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 20px -5px var(--glow-primary),
+    0 0 40px -10px var(--glow-accent), 0 10px 30px -10px rgba(0, 0, 0, 0.3);
   transform: translateY(-2px);
 }
 

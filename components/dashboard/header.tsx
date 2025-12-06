@@ -1,11 +1,8 @@
-"use client"
+"use client";
 
-import { Bell, Search } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { SidebarTrigger } from "@/components/ui/sidebar"
-import { Separator } from "@/components/ui/separator"
+import { ThemeToggle } from "@/components/theme-toggle";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,18 +10,36 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Badge } from "@/components/ui/badge"
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Bell, Search } from "lucide-react";
 
 export function DashboardHeader() {
   const notifications = [
-    { id: 1, title: "New participant joined", message: "Sarah joined your Sunset Hiking event", time: "2m ago" },
-    { id: 2, title: "Event reminder", message: "Board Game Night starts in 2 hours", time: "1h ago" },
-    { id: 3, title: "New review", message: "John left a 5-star review", time: "3h ago" },
-  ]
+    {
+      id: 1,
+      title: "New participant joined",
+      message: "Sarah joined your Sunset Hiking event",
+      time: "2m ago",
+    },
+    {
+      id: 2,
+      title: "Event reminder",
+      message: "Board Game Night starts in 2 hours",
+      time: "1h ago",
+    },
+    {
+      id: 3,
+      title: "New review",
+      message: "John left a 5-star review",
+      time: "3h ago",
+    },
+  ];
 
   return (
-    <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6">
+    <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 px-6">
       <SidebarTrigger className="-ml-2" />
       <Separator orientation="vertical" className="h-6" />
 
@@ -51,10 +66,17 @@ export function DashboardHeader() {
             <DropdownMenuLabel>Notifications</DropdownMenuLabel>
             <DropdownMenuSeparator />
             {notifications.map((notification) => (
-              <DropdownMenuItem key={notification.id} className="flex flex-col items-start gap-1 p-3">
+              <DropdownMenuItem
+                key={notification.id}
+                className="flex flex-col items-start gap-1 p-3"
+              >
                 <span className="font-medium">{notification.title}</span>
-                <span className="text-sm text-muted-foreground">{notification.message}</span>
-                <span className="text-xs text-muted-foreground">{notification.time}</span>
+                <span className="text-sm text-muted-foreground">
+                  {notification.message}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {notification.time}
+                </span>
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
@@ -65,5 +87,5 @@ export function DashboardHeader() {
         </DropdownMenu>
       </div>
     </header>
-  )
+  );
 }
