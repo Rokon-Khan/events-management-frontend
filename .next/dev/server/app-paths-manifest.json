@@ -1,3 +1,8 @@
 {
+  "/(auth)/login/page": "app/(auth)/login/page.js",
+  "/(auth)/register/page": "app/(auth)/register/page.js",
+  "/(main)/events/[id]/page": "app/(main)/events/[id]/page.js",
+  "/(main)/events/page": "app/(main)/events/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
   "/page": "app/page.js"
 }
