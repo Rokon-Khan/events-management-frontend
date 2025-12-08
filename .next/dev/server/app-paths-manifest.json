@@ -1,5 +1,14 @@
 {
+  "/(auth)/forgot-password/page": "app/(auth)/forgot-password/page.js",
+  "/(auth)/login/page": "app/(auth)/login/page.js",
+  "/(auth)/register/page": "app/(auth)/register/page.js",
+  "/(auth)/verify-email/page": "app/(auth)/verify-email/page.js",
+  "/(dashboard)/dashboard/my-events/page": "app/(dashboard)/dashboard/my-events/page.js",
+  "/(dashboard)/dashboard/page": "app/(dashboard)/dashboard/page.js",
+  "/(dashboard)/dashboard/reviews/page": "app/(dashboard)/dashboard/reviews/page.js",
+  "/(dashboard)/dashboard/upcoming/page": "app/(dashboard)/dashboard/upcoming/page.js",
+  "/(main)/become-host/page": "app/(main)/become-host/page.js",
+  "/(main)/events/page": "app/(main)/events/page.js",
   "/(main)/profile/[id]/page": "app/(main)/profile/[id]/page.js",
-  "/(main)/profile/edit/page": "app/(main)/profile/edit/page.js",
   "/page": "app/page.js"
 }

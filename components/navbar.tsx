@@ -1,38 +1,56 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { useState } from "react"
-import { Menu, X, Calendar, User, LogOut, LayoutDashboard, Plus, Compass, Users, Sparkles, Shield } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { useAuth } from "@/lib/auth-context"
+import { ThemeToggle } from "@/components/theme-toggle";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+} from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/lib/auth-context";
+import {
+  Calendar,
+  Compass,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  Plus,
+  Shield,
+  Sparkles,
+  User,
+  Users,
+  X,
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 export function Navbar() {
-  const [isOpen, setIsOpen] = useState(false)
-  const pathname = usePathname()
-  const { user, logout } = useAuth()
+  const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
+  const { user, logout } = useAuth();
 
-  const isActive = (path: string) => pathname === path
+  const isActive = (path: string) => pathname === path;
 
-  const navLinks = [{ href: "/events", label: "Explore Events", icon: Compass }]
+  const navLinks = [
+    { href: "/events", label: "Explore Events", icon: Compass },
+  ];
 
   const userLinks = user
     ? [
         ...(user.role === "host" || user.role === "admin"
           ? [{ href: "/events/create", label: "Create Event", icon: Plus }]
           : []),
-        { href: "/dashboard", label: user.role === "admin" ? "Admin Dashboard" : "My Events", icon: LayoutDashboard },
+        {
+          href: "/dashboard",
+          label: user.role === "admin" ? "Admin Dashboard" : "My Events",
+          icon: LayoutDashboard,
+        },
       ]
-    : []
+    : [];
 
   return (
     <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-lg">
@@ -50,7 +68,10 @@ export function Navbar() {
           <div className="hidden items-center gap-1 md:flex">
             {navLinks.map((link) => (
               <Link key={link.href} href={link.href}>
-                <Button variant={isActive(link.href) ? "secondary" : "ghost"} className="gap-2">
+                <Button
+                  variant={isActive(link.href) ? "secondary" : "ghost"}
+                  className="gap-2"
+                >
                   <link.icon className="h-4 w-4" />
                   {link.label}
                 </Button>
@@ -58,7 +79,10 @@ export function Navbar() {
             ))}
             {user?.role === "user" && (
               <Link href="/become-host">
-                <Button variant={isActive("/become-host") ? "secondary" : "ghost"} className="gap-2">
+                <Button
+                  variant={isActive("/become-host") ? "secondary" : "ghost"}
+                  className="gap-2"
+                >
                   <Shield className="h-4 w-4" />
                   Become a Host
                 </Button>
@@ -66,7 +90,10 @@ export function Navbar() {
             )}
             {userLinks.map((link) => (
               <Link key={link.href} href={link.href}>
-                <Button variant={isActive(link.href) ? "secondary" : "ghost"} className="gap-2">
+                <Button
+                  variant={isActive(link.href) ? "secondary" : "ghost"}
+                  className="gap-2"
+                >
                   <link.icon className="h-4 w-4" />
                   {link.label}
                 </Button>
@@ -81,9 +108,15 @@ export function Navbar() {
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+                  <Button
+                    variant="ghost"
+                    className="relative h-9 w-9 rounded-full"
+                  >
                     <Avatar className="h-9 w-9">
-                      <AvatarImage src={user.avatar || "/placeholder.svg"} alt={user.fullName} />
+                      <AvatarImage
+                        src={user.profilePhoto || "/placeholder.svg"}
+                        alt={user.fullName}
+                      />
                       <AvatarFallback>{user.fullName.charAt(0)}</AvatarFallback>
                     </Avatar>
                   </Button>
@@ -91,17 +124,27 @@ export function Navbar() {
                 <DropdownMenuContent align="end" className="w-56">
                   <div className="flex items-center gap-2 p-2">
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src={user.avatar || "/placeholder.svg"} alt={user.fullName} />
+                      <AvatarImage
+                        src={user.profilePhoto || "/placeholder.svg"}
+                        alt={user.fullName}
+                      />
                       <AvatarFallback>{user.fullName.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col">
-                      <span className="text-sm font-medium">{user.fullName}</span>
-                      <span className="text-xs text-muted-foreground capitalize">{user.role}</span>
+                      <span className="text-sm font-medium">
+                        {user.fullName}
+                      </span>
+                      <span className="text-xs text-muted-foreground capitalize">
+                        {user.role}
+                      </span>
                     </div>
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link href={`/profile/${user.id}`} className="flex items-center gap-2">
+                    <Link
+                      href={`/profile/${user.id}`}
+                      className="flex items-center gap-2"
+                    >
                       <User className="h-4 w-4" />
                       Profile
                     </Link>
@@ -114,7 +157,10 @@ export function Navbar() {
                   </DropdownMenuItem>
                   {user.role === "user" && (
                     <DropdownMenuItem asChild>
-                      <Link href="/become-host" className="flex items-center gap-2">
+                      <Link
+                        href="/become-host"
+                        className="flex items-center gap-2"
+                      >
                         <Shield className="h-4 w-4" />
                         Become a Host
                       </Link>
@@ -124,13 +170,19 @@ export function Navbar() {
                     <>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem asChild>
-                        <Link href="/dashboard/users" className="flex items-center gap-2">
+                        <Link
+                          href="/dashboard/users"
+                          className="flex items-center gap-2"
+                        >
                           <Users className="h-4 w-4" />
                           Manage Users
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link href="/dashboard/events" className="flex items-center gap-2">
+                        <Link
+                          href="/dashboard/events"
+                          className="flex items-center gap-2"
+                        >
                           <Calendar className="h-4 w-4" />
                           Manage Events
                         </Link>
@@ -138,7 +190,10 @@ export function Navbar() {
                     </>
                   )}
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={logout} className="text-destructive focus:text-destructive">
+                  <DropdownMenuItem
+                    onClick={logout}
+                    className="text-destructive focus:text-destructive"
+                  >
                     <LogOut className="mr-2 h-4 w-4" />
                     Log out
                   </DropdownMenuItem>
@@ -156,8 +211,17 @@ export function Navbar() {
             )}
 
             {/* Mobile Menu Button */}
-            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsOpen(!isOpen)}>
-              {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              onClick={() => setIsOpen(!isOpen)}
+            >
+              {isOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
             </Button>
           </div>
         </div>
@@ -167,8 +231,15 @@ export function Navbar() {
           <div className="border-t border-border py-4 md:hidden">
             <div className="flex flex-col gap-2">
               {navLinks.map((link) => (
-                <Link key={link.href} href={link.href} onClick={() => setIsOpen(false)}>
-                  <Button variant={isActive(link.href) ? "secondary" : "ghost"} className="w-full justify-start gap-2">
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setIsOpen(false)}
+                >
+                  <Button
+                    variant={isActive(link.href) ? "secondary" : "ghost"}
+                    className="w-full justify-start gap-2"
+                  >
                     <link.icon className="h-4 w-4" />
                     {link.label}
                   </Button>
@@ -186,8 +257,15 @@ export function Navbar() {
                 </Link>
               )}
               {userLinks.map((link) => (
-                <Link key={link.href} href={link.href} onClick={() => setIsOpen(false)}>
-                  <Button variant={isActive(link.href) ? "secondary" : "ghost"} className="w-full justify-start gap-2">
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setIsOpen(false)}
+                >
+                  <Button
+                    variant={isActive(link.href) ? "secondary" : "ghost"}
+                    className="w-full justify-start gap-2"
+                  >
                     <link.icon className="h-4 w-4" />
                     {link.label}
                   </Button>
@@ -210,5 +288,5 @@ export function Navbar() {
         )}
       </div>
     </nav>
-  )
+  );
 }

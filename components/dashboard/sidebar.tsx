@@ -1,25 +1,13 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  Calendar,
-  Home,
-  Users,
-  Plus,
-  Settings,
-  CreditCard,
-  Star,
-  LayoutDashboard,
-  CalendarCheck,
-  CalendarClock,
-  Heart,
-  UserCog,
-  Shield,
-  Sparkles,
-  ChevronUp,
-  LogOut,
-} from "lucide-react"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Sidebar,
   SidebarContent,
@@ -31,20 +19,32 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+} from "@/components/ui/sidebar";
+import { useAuth } from "@/lib/auth-context";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { useAuth } from "@/lib/auth-context"
+  Calendar,
+  CalendarCheck,
+  CalendarClock,
+  ChevronUp,
+  CreditCard,
+  Heart,
+  Home,
+  LayoutDashboard,
+  LogOut,
+  Plus,
+  Settings,
+  Shield,
+  Sparkles,
+  Star,
+  UserCog,
+  Users,
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export function DashboardSidebar() {
-  const pathname = usePathname()
-  const { user, logout } = useAuth()
+  const pathname = usePathname();
+  const { user, logout } = useAuth();
 
   const userNavItems = [
     { title: "Overview", href: "/dashboard", icon: LayoutDashboard },
@@ -52,7 +52,7 @@ export function DashboardSidebar() {
     { title: "Upcoming", href: "/dashboard/upcoming", icon: CalendarClock },
     { title: "Saved Events", href: "/dashboard/saved", icon: Heart },
     { title: "My Reviews", href: "/dashboard/reviews", icon: Star },
-  ]
+  ];
 
   const hostNavItems = [
     { title: "Overview", href: "/dashboard", icon: LayoutDashboard },
@@ -61,7 +61,7 @@ export function DashboardSidebar() {
     { title: "Participants", href: "/dashboard/participants", icon: Users },
     { title: "Revenue", href: "/dashboard/revenue", icon: CreditCard },
     { title: "Reviews", href: "/dashboard/reviews", icon: Star },
-  ]
+  ];
 
   const adminNavItems = [
     { title: "Overview", href: "/dashboard", icon: LayoutDashboard },
@@ -70,25 +70,36 @@ export function DashboardSidebar() {
     { title: "Manage Events", href: "/dashboard/events", icon: Calendar },
     { title: "Reviews", href: "/dashboard/reviews", icon: Star },
     { title: "Revenue", href: "/dashboard/revenue", icon: CreditCard },
-  ]
+  ];
 
-  const navItems = user?.role === "admin" ? adminNavItems : user?.role === "host" ? hostNavItems : userNavItems
+  const navItems =
+    user?.role === "admin"
+      ? adminNavItems
+      : user?.role === "host"
+      ? hostNavItems
+      : userNavItems;
 
   return (
-    <Sidebar className="border-r border-sidebar-border">
+    <Sidebar className="border-r border-sidebar-border" collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border p-4">
         <Link href="/" className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
             <Sparkles className="h-4 w-4 text-primary-foreground" />
           </div>
-          <span className="font-bold text-lg text-sidebar-foreground">EventHub</span>
+          <span className="font-bold text-lg text-sidebar-foreground">
+            EventHub
+          </span>
         </Link>
       </SidebarHeader>
 
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="text-sidebar-foreground/60">
-            {user?.role === "admin" ? "Admin Panel" : user?.role === "host" ? "Host Dashboard" : "My Dashboard"}
+            {user?.role === "admin"
+              ? "Admin Panel"
+              : user?.role === "host"
+              ? "Host Dashboard"
+              : "My Dashboard"}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -111,11 +122,16 @@ export function DashboardSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-foreground/60">Quick Links</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-sidebar-foreground/60">
+            Quick Links
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild className="text-sidebar-foreground hover:bg-sidebar-accent">
+                <SidebarMenuButton
+                  asChild
+                  className="text-sidebar-foreground hover:bg-sidebar-accent"
+                >
                   <Link href="/events">
                     <Home className="h-4 w-4" />
                     <span>Browse Events</span>
@@ -123,7 +139,10 @@ export function DashboardSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild className="text-sidebar-foreground hover:bg-sidebar-accent">
+                <SidebarMenuButton
+                  asChild
+                  className="text-sidebar-foreground hover:bg-sidebar-accent"
+                >
                   <Link href={`/profile/${user?.id}`}>
                     <Settings className="h-4 w-4" />
                     <span>My Profile</span>
@@ -142,12 +161,18 @@ export function DashboardSidebar() {
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton className="w-full text-sidebar-foreground hover:bg-sidebar-accent">
                   <Avatar className="h-6 w-6">
-                    <AvatarImage src={user?.avatar || "/placeholder.svg"} />
+                    <AvatarImage
+                      src={user?.profilePhoto || "/placeholder.svg"}
+                    />
                     <AvatarFallback>{user?.fullName?.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col items-start text-left flex-1 min-w-0">
-                    <span className="text-sm font-medium truncate w-full">{user?.fullName}</span>
-                    <span className="text-xs text-sidebar-foreground/60 capitalize">{user?.role}</span>
+                    <span className="text-sm font-medium truncate w-full">
+                      {user?.fullName}
+                    </span>
+                    <span className="text-xs text-sidebar-foreground/60 capitalize">
+                      {user?.role}
+                    </span>
                   </div>
                   <ChevronUp className="h-4 w-4" />
                 </SidebarMenuButton>
@@ -160,7 +185,10 @@ export function DashboardSidebar() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={logout} className="text-destructive focus:text-destructive">
+                <DropdownMenuItem
+                  onClick={logout}
+                  className="text-destructive focus:text-destructive"
+                >
                   <LogOut className="mr-2 h-4 w-4" />
                   Log out
                 </DropdownMenuItem>
@@ -170,5 +198,5 @@ export function DashboardSidebar() {
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }

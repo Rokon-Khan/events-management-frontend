@@ -53,8 +53,8 @@ export default function RegisterPage() {
     })
 
     if (result.success) {
-      toast.success("Account created successfully!")
-      router.push("/dashboard")
+      toast.success("Registration successful! Please verify your email.")
+      router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`)
     } else {
       toast.error(result.error || "Failed to create account")
     }

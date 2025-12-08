@@ -19,13 +19,22 @@ export interface User {
   email: string
   fullName: string
   role: UserRole
+  phoneNumber?: string
+  profilePhoto?: string
   avatar?: string
+  address?: string
   bio?: string
   interests: string[]
   location?: string
-  createdAt: string
-  rating: number
+  gender?: string
+  dateOfBirth?: string
+  pertcipatedEvents?: number
+  hostedEvents?: number
   reviewCount: number
+  status?: string
+  isEmailVerified?: boolean
+  createdAt: string
+  rating?: number
 }
 
 export interface Event {
