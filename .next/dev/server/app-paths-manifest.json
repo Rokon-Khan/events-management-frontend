@@ -1,11 +1,16 @@
 {
-  "/(dashboard)/dashboard/events/page": "app/(dashboard)/dashboard/events/page.js",
+  "/(dashboard)/dashboard/events/create/page": "app/(dashboard)/dashboard/events/create/page.js",
   "/(dashboard)/dashboard/hosts/page": "app/(dashboard)/dashboard/hosts/page.js",
   "/(dashboard)/dashboard/my-events/page": "app/(dashboard)/dashboard/my-events/page.js",
   "/(dashboard)/dashboard/page": "app/(dashboard)/dashboard/page.js",
+  "/(dashboard)/dashboard/participants/page": "app/(dashboard)/dashboard/participants/page.js",
+  "/(dashboard)/dashboard/profile/page": "app/(dashboard)/dashboard/profile/page.js",
+  "/(dashboard)/dashboard/revenue/page": "app/(dashboard)/dashboard/revenue/page.js",
   "/(dashboard)/dashboard/reviews/page": "app/(dashboard)/dashboard/reviews/page.js",
+  "/(dashboard)/dashboard/saved/page": "app/(dashboard)/dashboard/saved/page.js",
+  "/(dashboard)/dashboard/upcoming/page": "app/(dashboard)/dashboard/upcoming/page.js",
   "/(dashboard)/dashboard/users/page": "app/(dashboard)/dashboard/users/page.js",
-  "/(main)/events/page": "app/(main)/events/page.js",
+  "/(main)/become-host/page": "app/(main)/become-host/page.js",
   "/_not-found/page": "app/_not-found/page.js",
   "/page": "app/page.js"
 }

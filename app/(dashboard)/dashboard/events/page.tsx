@@ -33,6 +33,7 @@ import {
   Edit,
   Eye,
   MoreVertical,
+  Plus,
   Search,
   Shield,
   XCircle,
@@ -77,13 +78,26 @@ export default function ManageEventsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">
-          Manage <span className="gradient-text">Events</span>
-        </h1>
-        <p className="text-muted-foreground">
-          Review and moderate all platform events
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Manage <span className="gradient-text">Events</span>
+          </h1>
+          <p className="text-muted-foreground">
+            Review and moderate all platform events
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <GlowCard className="px-3 py-2">
+            <Link
+              href="/dashboard/events/create"
+              className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Create Event
+            </Link>
+          </GlowCard>
+        </div>
       </div>
 
       {/* Stats */}

@@ -41,12 +41,18 @@ export function Navbar() {
 
   const userLinks = user
     ? [
-        ...(user.role === "host" || user.role === "admin"
-          ? [{ href: "/events/create", label: "Create Event", icon: Plus }]
+        ...(user.role === "HOST" || user.role === "ADMIN"
+          ? [
+              {
+                href: "/dashboard/events/create",
+                label: "Create Event",
+                icon: Plus,
+              },
+            ]
           : []),
         {
           href: "/dashboard",
-          label: user.role === "admin" ? "Admin Dashboard" : "My Events",
+          label: user.role === "ADMIN" ? "Admin Dashboard" : "My Events",
           icon: LayoutDashboard,
         },
       ]
@@ -77,7 +83,7 @@ export function Navbar() {
                 </Button>
               </Link>
             ))}
-            {user?.role === "user" && (
+            {user?.role === "USER" && (
               <Link href="/become-host">
                 <Button
                   variant={isActive("/become-host") ? "secondary" : "ghost"}
@@ -155,7 +161,7 @@ export function Navbar() {
                       Dashboard
                     </Link>
                   </DropdownMenuItem>
-                  {user.role === "user" && (
+                  {user.role === "USER" && (
                     <DropdownMenuItem asChild>
                       <Link
                         href="/become-host"
@@ -166,7 +172,7 @@ export function Navbar() {
                       </Link>
                     </DropdownMenuItem>
                   )}
-                  {user.role === "admin" && (
+                  {user.role === "ADMIN" && (
                     <>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem asChild>
@@ -245,7 +251,7 @@ export function Navbar() {
                   </Button>
                 </Link>
               ))}
-              {user?.role === "user" && (
+              {user?.role === "USER" && (
                 <Link href="/become-host" onClick={() => setIsOpen(false)}>
                   <Button
                     variant={isActive("/become-host") ? "secondary" : "ghost"}

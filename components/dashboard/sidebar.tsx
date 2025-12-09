@@ -56,7 +56,7 @@ export function DashboardSidebar() {
 
   const hostNavItems = [
     { title: "Overview", href: "/dashboard", icon: LayoutDashboard },
-    { title: "Create Event", href: "/events/create", icon: Plus },
+    { title: "Create Event", href: "/dashboard/events/create", icon: Plus },
     { title: "My Events", href: "/dashboard/my-events", icon: Calendar },
     { title: "Participants", href: "/dashboard/participants", icon: Users },
     { title: "Revenue", href: "/dashboard/revenue", icon: CreditCard },
@@ -143,7 +143,7 @@ export function DashboardSidebar() {
                   asChild
                   className="text-sidebar-foreground hover:bg-sidebar-accent"
                 >
-                  <Link href={`/dashboard/profile/${user?.id}`}>
+                  <Link href={`/dashboard/profile`}>
                     <Settings className="h-4 w-4" />
                     <span>My Profile</span>
                   </Link>

@@ -33,10 +33,10 @@ export default function EditProfilePage() {
       setFormData({
         fullName: user.fullName,
         bio: user.bio || "",
-        location: user.location || "",
+        location: user.address || user.location || "",
         interests: user.interests || [],
       })
-      setImagePreview(user.avatar || null)
+      setImagePreview(user.profilePhoto || user.avatar || null)
     } else {
       router.push("/login")
     }
@@ -70,20 +70,37 @@ export default function EditProfilePage() {
     e.preventDefault()
     setIsSubmitting(true)
 
-    // Simulate API call
-    await new Promise((r) => setTimeout(r, 1500))
+    try {
+      const formDataToSend = new FormData()
+      formDataToSend.append("fullName", formData.fullName)
+      formDataToSend.append("bio", formData.bio)
+      formDataToSend.append("address", formData.location)
+      formDataToSend.append("interests", JSON.stringify(formData.interests))
 
-    updateUser({
-      fullName: formData.fullName,
-      bio: formData.bio,
-      location: formData.location,
-      interests: formData.interests,
-      avatar: imagePreview || undefined,
-    })
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+      if (fileInput?.files?.[0]) {
+        formDataToSend.append("profilePhoto", fileInput.files[0])
+      }
+
+      const { userApi } = await import("@/lib/userApi")
+      const response = await userApi.updateMyProfile(formDataToSend)
+
+      if (response.success) {
+        const { authApi } = await import("@/lib/api")
+        const userResponse = await authApi.getMe()
+        if (userResponse.success && userResponse.data) {
+          updateUser(userResponse.data)
+        }
+        toast.success("Profile updated successfully!")
+        router.push("/dashboard")
+      } else {
+        toast.error(response.message || "Failed to update profile")
+      }
+    } catch (error) {
+      toast.error("Network error. Please try again.")
+    }
 
     setIsSubmitting(false)
-    toast.success("Profile updated successfully!")
-    router.push(`/profile/${user.id}`)
   }
 
   return (
@@ -150,12 +167,12 @@ export default function EditProfilePage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="location">Location</Label>
+                <Label htmlFor="location">Address</Label>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     id="location"
-                    placeholder="City, State"
+                    placeholder="Your address"
                     className="pl-10"
                     value={formData.location}
                     onChange={(e) => setFormData({ ...formData, location: e.target.value })}

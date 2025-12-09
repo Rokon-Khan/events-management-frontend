@@ -1,28 +1,70 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { Calendar, Users, DollarSign, Star, ArrowRight, TrendingUp, Plus, Eye } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { GlowCard } from "@/components/glow-card"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { useAuth } from "@/lib/auth-context"
-import { mockEvents, mockReviews } from "@/lib/mock-data"
+import { GlowCard } from "@/components/glow-card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { useAuth } from "@/lib/auth-context";
+import { mockEvents, mockReviews } from "@/lib/mock-data";
+import {
+  ArrowRight,
+  Calendar,
+  DollarSign,
+  Eye,
+  Plus,
+  Star,
+  TrendingUp,
+  Users,
+} from "lucide-react";
+import Link from "next/link";
 
 export function HostDashboard() {
-  const { user } = useAuth()
+  const { user } = useAuth();
 
-  const hostedEvents = mockEvents.filter((e) => e.hostId === user?.id)
-  const upcomingHosted = hostedEvents.filter((e) => new Date(e.date) > new Date())
-  const totalRevenue = hostedEvents.reduce((acc, e) => acc + e.fee * e.currentParticipants, 0)
-  const totalParticipants = hostedEvents.reduce((acc, e) => acc + e.currentParticipants, 0)
-  const hostReviews = mockReviews.filter((r) => r.hostId === user?.id)
+  const hostedEvents = mockEvents.filter((e) => e.hostId === user?.id);
+  const upcomingHosted = hostedEvents.filter(
+    (e) => new Date(e.date) > new Date()
+  );
+  const totalRevenue = hostedEvents.reduce(
+    (acc, e) => acc + e.fee * e.currentParticipants,
+    0
+  );
+  const totalParticipants = hostedEvents.reduce(
+    (acc, e) => acc + e.currentParticipants,
+    0
+  );
+  const hostReviews = mockReviews.filter((r) => r.hostId === user?.id);
 
   const stats = [
-    { label: "Total Events", value: hostedEvents.length, icon: Calendar, change: "+2 this month", trend: "up" },
-    { label: "Total Participants", value: totalParticipants, icon: Users, change: "+18 this week", trend: "up" },
-    { label: "Revenue", value: `$${totalRevenue}`, icon: DollarSign, change: "+12%", trend: "up" },
+    {
+      label: "Total Events",
+      value: hostedEvents.length,
+      icon: Calendar,
+      change: "+2 this month",
+      trend: "up",
+    },
+    {
+      label: "Total Participants",
+      value: totalParticipants,
+      icon: Users,
+      change: "+18 this week",
+      trend: "up",
+    },
+    {
+      label: "Revenue",
+      value: `$${totalRevenue}`,
+      icon: DollarSign,
+      change: "+12%",
+      trend: "up",
+    },
     {
       label: "Avg Rating",
       value: user?.rating || 0,
@@ -30,12 +72,18 @@ export function HostDashboard() {
       change: `${hostReviews.length} reviews`,
       trend: "neutral",
     },
-  ]
+  ];
 
   const recentParticipants = mockEvents
     .filter((e) => e.hostId === user?.id)
-    .flatMap((e) => e.participants.map((p) => ({ ...p, eventName: e.name, eventDate: e.date })))
-    .slice(0, 5)
+    .flatMap((e) =>
+      e.participants.map((p) => ({
+        ...p,
+        eventName: e.name,
+        eventDate: e.date,
+      }))
+    )
+    .slice(0, 5);
 
   return (
     <div className="space-y-6">
@@ -44,14 +92,18 @@ export function HostDashboard() {
           <h1 className="text-3xl font-bold tracking-tight">
             Host <span className="gradient-text">Dashboard</span>
           </h1>
-          <p className="text-muted-foreground">Manage your events and track performance</p>
+          <p className="text-muted-foreground">
+            Manage your events and track performance
+          </p>
         </div>
-        <Link href="/events/create">
-          <Button className="gap-2">
-            <Plus className="h-4 w-4" />
-            Create Event
-          </Button>
-        </Link>
+        <GlowCard className="px-3 py-2">
+          <Link href="/dashboard/events/create">
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              Create Event
+            </Button>
+          </Link>
+        </GlowCard>
       </div>
 
       {/* Stats Grid */}
@@ -62,7 +114,10 @@ export function HostDashboard() {
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
                 <stat.icon className="h-5 w-5 text-primary" />
               </div>
-              <Badge variant={stat.trend === "up" ? "default" : "secondary"} className="text-xs gap-1">
+              <Badge
+                variant={stat.trend === "up" ? "default" : "secondary"}
+                className="text-xs gap-1"
+              >
                 {stat.trend === "up" && <TrendingUp className="h-3 w-3" />}
                 {stat.change}
               </Badge>
@@ -89,12 +144,18 @@ export function HostDashboard() {
           <div className="space-y-3">
             {upcomingHosted.length > 0 ? (
               upcomingHosted.slice(0, 4).map((event) => (
-                <div key={event.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                <div
+                  key={event.id}
+                  className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
+                >
                   <div className="flex-1 min-w-0">
                     <p className="font-medium truncate">{event.name}</p>
                     <p className="text-sm text-muted-foreground">
-                      {new Date(event.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })} at{" "}
-                      {event.time}
+                      {new Date(event.date).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })}{" "}
+                      at {event.time}
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
@@ -112,7 +173,9 @@ export function HostDashboard() {
             ) : (
               <div className="text-center py-8">
                 <Calendar className="h-10 w-10 text-muted-foreground/50 mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">No upcoming events</p>
+                <p className="text-sm text-muted-foreground">
+                  No upcoming events
+                </p>
               </div>
             )}
           </div>
@@ -131,20 +194,31 @@ export function HostDashboard() {
           <div className="space-y-3">
             {hostReviews.length > 0 ? (
               hostReviews.slice(0, 3).map((review) => (
-                <div key={review.id} className="flex gap-3 p-3 rounded-lg bg-muted/50">
+                <div
+                  key={review.id}
+                  className="flex gap-3 p-3 rounded-lg bg-muted/50"
+                >
                   <Avatar className="h-9 w-9">
-                    <AvatarImage src={review.user.avatar || "/placeholder.svg"} />
-                    <AvatarFallback>{review.user.fullName.charAt(0)}</AvatarFallback>
+                    <AvatarImage
+                      src={review.user.avatar || "/placeholder.svg"}
+                    />
+                    <AvatarFallback>
+                      {review.user.fullName.charAt(0)}
+                    </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <p className="font-medium text-sm">{review.user.fullName}</p>
+                      <p className="font-medium text-sm">
+                        {review.user.fullName}
+                      </p>
                       <div className="flex items-center gap-1">
                         <Star className="h-3 w-3 fill-primary text-primary" />
                         <span className="text-sm">{review.rating}</span>
                       </div>
                     </div>
-                    <p className="text-sm text-muted-foreground line-clamp-2">{review.comment}</p>
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {review.comment}
+                    </p>
                   </div>
                 </div>
               ))
@@ -185,13 +259,21 @@ export function HostDashboard() {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Avatar className="h-8 w-8">
-                          <AvatarImage src={participant.avatar || "/placeholder.svg"} />
-                          <AvatarFallback>{participant.fullName.charAt(0)}</AvatarFallback>
+                          <AvatarImage
+                            src={participant.avatar || "/placeholder.svg"}
+                          />
+                          <AvatarFallback>
+                            {participant.fullName.charAt(0)}
+                          </AvatarFallback>
                         </Avatar>
-                        <span className="font-medium">{participant.fullName}</span>
+                        <span className="font-medium">
+                          {participant.fullName}
+                        </span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{participant.eventName}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {participant.eventName}
+                    </TableCell>
                     <TableCell className="text-muted-foreground">
                       {new Date(participant.eventDate).toLocaleDateString()}
                     </TableCell>
@@ -206,7 +288,10 @@ export function HostDashboard() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                  <TableCell
+                    colSpan={4}
+                    className="text-center py-8 text-muted-foreground"
+                  >
                     No participants yet
                   </TableCell>
                 </TableRow>
@@ -216,5 +301,5 @@ export function HostDashboard() {
         </div>
       </GlowCard>
     </div>
-  )
+  );
 }
