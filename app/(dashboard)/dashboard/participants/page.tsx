@@ -1,36 +1,64 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { Search, Users, Mail, MoreVertical, Eye, Calendar, Shield } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { GlowCard } from "@/components/glow-card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { useAuth } from "@/lib/auth-context"
-import { mockEvents } from "@/lib/mock-data"
-import { toast } from "sonner"
+import { GlowCard } from "@/components/glow-card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { useAuth } from "@/lib/auth-context";
+import { mockEvents } from "@/lib/mock-data";
+import {
+  Calendar,
+  Eye,
+  Mail,
+  MoreVertical,
+  Search,
+  Shield,
+  Users,
+} from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export default function ParticipantsPage() {
-  const { user } = useAuth()
-  const [searchQuery, setSearchQuery] = useState("")
-  const [eventFilter, setEventFilter] = useState<string>("all")
+  const { user } = useAuth();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [eventFilter, setEventFilter] = useState<string>("all");
 
-  if (user?.role !== "host" && user?.role !== "admin") {
+  if (user?.role !== "HOST" && user?.role !== "ADMIN") {
     return (
       <GlowCard className="text-center py-12">
         <Shield className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
         <h3 className="font-semibold">Access Denied</h3>
-        <p className="text-sm text-muted-foreground mt-1">You don't have permission to view this page</p>
+        <p className="text-sm text-muted-foreground mt-1">
+          You don't have permission to view this page
+        </p>
       </GlowCard>
-    )
+    );
   }
 
-  const hostedEvents = mockEvents.filter((e) => e.hostId === user?.id)
+  const hostedEvents = mockEvents.filter((e) => e.hostId === user?.id);
 
   const allParticipants = hostedEvents.flatMap((event) =>
     event.participants.map((participant) => ({
@@ -38,18 +66,22 @@ export default function ParticipantsPage() {
       eventId: event.id,
       eventName: event.name,
       eventDate: event.date,
-    })),
-  )
+    }))
+  );
 
   const filteredParticipants = allParticipants.filter((participant) => {
     const matchesSearch =
       participant.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      participant.email.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesEvent = eventFilter === "all" || participant.eventId === eventFilter
-    return matchesSearch && matchesEvent
-  })
+      participant.email.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesEvent =
+      eventFilter === "all" || participant.eventId === eventFilter;
+    return matchesSearch && matchesEvent;
+  });
 
-  const totalParticipants = hostedEvents.reduce((acc, e) => acc + e.currentParticipants, 0)
+  const totalParticipants = hostedEvents.reduce(
+    (acc, e) => acc + e.currentParticipants,
+    0
+  );
 
   return (
     <div className="space-y-6">
@@ -57,7 +89,9 @@ export default function ParticipantsPage() {
         <h1 className="text-3xl font-bold tracking-tight">
           Event <span className="gradient-text">Participants</span>
         </h1>
-        <p className="text-muted-foreground">Manage participants across all your events</p>
+        <p className="text-muted-foreground">
+          Manage participants across all your events
+        </p>
       </div>
 
       {/* Stats */}
@@ -69,7 +103,9 @@ export default function ParticipantsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{totalParticipants}</p>
-              <p className="text-sm text-muted-foreground">Total Participants</p>
+              <p className="text-sm text-muted-foreground">
+                Total Participants
+              </p>
             </div>
           </div>
         </GlowCard>
@@ -91,7 +127,9 @@ export default function ParticipantsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">
-                {hostedEvents.length > 0 ? Math.round(totalParticipants / hostedEvents.length) : 0}
+                {hostedEvents.length > 0
+                  ? Math.round(totalParticipants / hostedEvents.length)
+                  : 0}
               </p>
               <p className="text-sm text-muted-foreground">Avg per Event</p>
             </div>
@@ -145,12 +183,18 @@ export default function ParticipantsPage() {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar className="h-9 w-9">
-                          <AvatarImage src={participant.avatar || "/placeholder.svg"} />
-                          <AvatarFallback>{participant.fullName.charAt(0)}</AvatarFallback>
+                          <AvatarImage
+                            src={participant.avatar || "/placeholder.svg"}
+                          />
+                          <AvatarFallback>
+                            {participant.fullName.charAt(0)}
+                          </AvatarFallback>
                         </Avatar>
                         <div>
                           <p className="font-medium">{participant.fullName}</p>
-                          <p className="text-sm text-muted-foreground">{participant.email}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {participant.email}
+                          </p>
                         </div>
                       </div>
                     </TableCell>
@@ -160,7 +204,9 @@ export default function ParticipantsPage() {
                     <TableCell className="text-muted-foreground">
                       {new Date(participant.eventDate).toLocaleDateString()}
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{participant.location || "-"}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {participant.location || "-"}
+                    </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -170,7 +216,10 @@ export default function ParticipantsPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem asChild>
-                            <Link href={`/profile/${participant.id}`} className="flex items-center gap-2">
+                            <Link
+                              href={`/profile/${participant.id}`}
+                              className="flex items-center gap-2"
+                            >
                               <Eye className="h-4 w-4" />
                               View Profile
                             </Link>
@@ -189,7 +238,10 @@ export default function ParticipantsPage() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                  <TableCell
+                    colSpan={5}
+                    className="text-center py-8 text-muted-foreground"
+                  >
                     No participants found
                   </TableCell>
                 </TableRow>
@@ -199,5 +251,5 @@ export default function ParticipantsPage() {
         </div>
       </GlowCard>
     </div>
-  )
+  );
 }

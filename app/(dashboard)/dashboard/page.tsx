@@ -1,22 +1,22 @@
-"use client"
+"use client";
 
-import { useAuth } from "@/lib/auth-context"
-import { UserDashboard } from "@/components/dashboard/user-dashboard"
-import { HostDashboard } from "@/components/dashboard/host-dashboard"
-import { AdminDashboard } from "@/components/dashboard/admin-dashboard"
+import { AdminDashboard } from "@/components/dashboard/admin-dashboard";
+import { HostDashboard } from "@/components/dashboard/host-dashboard";
+import { UserDashboard } from "@/components/dashboard/user-dashboard";
+import { useAuth } from "@/lib/auth-context";
 
 export default function DashboardPage() {
-  const { user } = useAuth()
+  const { user } = useAuth();
 
-  if (!user) return null
+  if (!user) return null;
 
-  if (user.role === "admin") {
-    return <AdminDashboard />
+  if (user.role === "ADMIN") {
+    return <AdminDashboard />;
   }
 
-  if (user.role === "host") {
-    return <HostDashboard />
+  if (user.role === "HOST") {
+    return <HostDashboard />;
   }
 
-  return <UserDashboard />
+  return <UserDashboard />;
 }

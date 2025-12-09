@@ -1,52 +1,81 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { Search, MoreVertical, Eye, Shield, Star, Calendar, DollarSign, CheckCircle, XCircle } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { GlowCard } from "@/components/glow-card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { GlowCard } from "@/components/glow-card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { useAuth } from "@/lib/auth-context"
-import { mockUsers, mockEvents } from "@/lib/mock-data"
-import { toast } from "sonner"
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { useAuth } from "@/lib/auth-context";
+import { mockEvents, mockUsers } from "@/lib/mock-data";
+import {
+  Calendar,
+  CheckCircle,
+  DollarSign,
+  Eye,
+  MoreVertical,
+  Search,
+  Shield,
+  Star,
+  XCircle,
+} from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export default function ManageHostsPage() {
-  const { user: currentUser } = useAuth()
-  const [searchQuery, setSearchQuery] = useState("")
+  const { user: currentUser } = useAuth();
+  const [searchQuery, setSearchQuery] = useState("");
 
-  if (currentUser?.role !== "admin") {
+  if (currentUser?.role !== "ADMIN") {
     return (
       <GlowCard className="text-center py-12">
         <Shield className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
         <h3 className="font-semibold">Access Denied</h3>
-        <p className="text-sm text-muted-foreground mt-1">You don't have permission to view this page</p>
+        <p className="text-sm text-muted-foreground mt-1">
+          You don't have permission to view this page
+        </p>
       </GlowCard>
-    )
+    );
   }
 
-  const hosts = mockUsers.filter((u) => u.role === "host")
+  const hosts = mockUsers.filter((u) => u.role === "HOST");
   const filteredHosts = hosts.filter(
     (host) =>
       host.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      host.email.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+      host.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const getHostStats = (hostId: string) => {
-    const hostEvents = mockEvents.filter((e) => e.hostId === hostId)
-    const totalRevenue = hostEvents.reduce((acc, e) => acc + e.fee * e.currentParticipants, 0)
-    const totalParticipants = hostEvents.reduce((acc, e) => acc + e.currentParticipants, 0)
-    return { events: hostEvents.length, revenue: totalRevenue, participants: totalParticipants }
-  }
+    const hostEvents = mockEvents.filter((e) => e.hostId === hostId);
+    const totalRevenue = hostEvents.reduce(
+      (acc, e) => acc + e.fee * e.currentParticipants,
+      0
+    );
+    const totalParticipants = hostEvents.reduce(
+      (acc, e) => acc + e.currentParticipants,
+      0
+    );
+    return {
+      events: hostEvents.length,
+      revenue: totalRevenue,
+      participants: totalParticipants,
+    };
+  };
 
   return (
     <div className="space-y-6">
@@ -88,7 +117,9 @@ export default function ManageHostsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">
-                {(hosts.reduce((acc, h) => acc + h.rating, 0) / hosts.length).toFixed(1)}
+                {(
+                  hosts.reduce((acc, h) => acc + h.rating, 0) / hosts.length
+                ).toFixed(1)}
               </p>
               <p className="text-sm text-muted-foreground">Avg Rating</p>
             </div>
@@ -124,18 +155,24 @@ export default function ManageHostsPage() {
             </TableHeader>
             <TableBody>
               {filteredHosts.map((host) => {
-                const stats = getHostStats(host.id)
+                const stats = getHostStats(host.id);
                 return (
                   <TableRow key={host.id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar className="h-9 w-9">
-                          <AvatarImage src={host.avatar || "/placeholder.svg"} />
-                          <AvatarFallback>{host.fullName.charAt(0)}</AvatarFallback>
+                          <AvatarImage
+                            src={host.avatar || "/placeholder.svg"}
+                          />
+                          <AvatarFallback>
+                            {host.fullName.charAt(0)}
+                          </AvatarFallback>
                         </Avatar>
                         <div>
                           <p className="font-medium">{host.fullName}</p>
-                          <p className="text-sm text-muted-foreground">{host.email}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {host.email}
+                          </p>
                         </div>
                       </div>
                     </TableCell>
@@ -143,7 +180,9 @@ export default function ManageHostsPage() {
                       <div className="flex items-center gap-1">
                         <Star className="h-4 w-4 fill-primary text-primary" />
                         <span className="font-medium">{host.rating}</span>
-                        <span className="text-muted-foreground text-sm">({host.reviewCount})</span>
+                        <span className="text-muted-foreground text-sm">
+                          ({host.reviewCount})
+                        </span>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -174,7 +213,10 @@ export default function ManageHostsPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem asChild>
-                            <Link href={`/profile/${host.id}`} className="flex items-center gap-2">
+                            <Link
+                              href={`/profile/${host.id}`}
+                              className="flex items-center gap-2"
+                            >
                               <Eye className="h-4 w-4" />
                               View Profile
                             </Link>
@@ -195,12 +237,12 @@ export default function ManageHostsPage() {
                       </DropdownMenu>
                     </TableCell>
                   </TableRow>
-                )
+                );
               })}
             </TableBody>
           </Table>
         </div>
       </GlowCard>
     </div>
-  )
+  );
 }

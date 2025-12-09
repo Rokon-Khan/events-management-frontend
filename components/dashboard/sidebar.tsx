@@ -73,9 +73,9 @@ export function DashboardSidebar() {
   ];
 
   const navItems =
-    user?.role === "admin"
+    user?.role === "ADMIN"
       ? adminNavItems
-      : user?.role === "host"
+      : user?.role === "HOST"
       ? hostNavItems
       : userNavItems;
 
@@ -95,9 +95,9 @@ export function DashboardSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="text-sidebar-foreground/60">
-            {user?.role === "admin"
+            {user?.role === "ADMIN"
               ? "Admin Panel"
-              : user?.role === "host"
+              : user?.role === "HOST"
               ? "Host Dashboard"
               : "My Dashboard"}
           </SidebarGroupLabel>
@@ -143,7 +143,7 @@ export function DashboardSidebar() {
                   asChild
                   className="text-sidebar-foreground hover:bg-sidebar-accent"
                 >
-                  <Link href={`/profile/${user?.id}`}>
+                  <Link href={`/dashboard/profile/${user?.id}`}>
                     <Settings className="h-4 w-4" />
                     <span>My Profile</span>
                   </Link>

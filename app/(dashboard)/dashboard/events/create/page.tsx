@@ -1,26 +1,40 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import Image from "next/image"
-import { ArrowLeft, Calendar, Clock, MapPin, Users, DollarSign, ImageIcon } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { GlowCard } from "@/components/glow-card"
-import { useAuth } from "@/lib/auth-context"
-import { eventCategories } from "@/lib/mock-data"
-import { toast } from "sonner"
+import { GlowCard } from "@/components/glow-card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/lib/auth-context";
+import { eventCategories } from "@/lib/mock-data";
+import {
+  ArrowLeft,
+  Calendar,
+  Clock,
+  DollarSign,
+  ImageIcon,
+  MapPin,
+  Users,
+} from "lucide-react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export default function CreateEventPage() {
-  const router = useRouter()
-  const { user } = useAuth()
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const router = useRouter();
+  const { user } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -32,46 +46,50 @@ export default function CreateEventPage() {
     minParticipants: "2",
     maxParticipants: "10",
     fee: "0",
-  })
+  });
 
   // Redirect if not a host
-  if (user && user.role === "user") {
-    router.push("/register?role=host")
-    return null
+  if (user && user.role === "USER") {
+    router.push("/register?role=HOST");
+    return null;
   }
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader()
+      const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result as string)
-      }
-      reader.readAsDataURL(file)
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!user) {
-      toast.error("Please log in to create events")
-      router.push("/login")
-      return
+      toast.error("Please log in to create events");
+      router.push("/login");
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     // Simulate API call
-    await new Promise((r) => setTimeout(r, 2000))
-    setIsSubmitting(false)
-    toast.success("Event created successfully!")
-    router.push("/dashboard")
-  }
+    await new Promise((r) => setTimeout(r, 2000));
+    setIsSubmitting(false);
+    toast.success("Event created successfully!");
+    router.push("/dashboard");
+  };
 
   return (
     <div className="py-8">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-        <Button variant="ghost" className="mb-6 gap-2" onClick={() => router.back()}>
+        <Button
+          variant="ghost"
+          className="mb-6 gap-2"
+          onClick={() => router.back()}
+        >
           <ArrowLeft className="h-4 w-4" />
           Back
         </Button>
@@ -81,7 +99,8 @@ export default function CreateEventPage() {
             Create New <span className="gradient-text">Event</span>
           </h1>
           <p className="mt-2 text-muted-foreground">
-            Fill in the details to create your event and connect with participants
+            Fill in the details to create your event and connect with
+            participants
           </p>
         </div>
 
@@ -89,11 +108,18 @@ export default function CreateEventPage() {
           {/* Event Image */}
           <GlowCard>
             <Label className="text-base font-semibold">Event Image</Label>
-            <p className="text-sm text-muted-foreground mb-4">Add a compelling image that represents your event</p>
+            <p className="text-sm text-muted-foreground mb-4">
+              Add a compelling image that represents your event
+            </p>
             <div className="relative">
               {imagePreview ? (
                 <div className="relative aspect-[16/9] overflow-hidden rounded-xl">
-                  <Image src={imagePreview || "/placeholder.svg"} alt="Event preview" fill className="object-cover" />
+                  <Image
+                    src={imagePreview || "/placeholder.svg"}
+                    alt="Event preview"
+                    fill
+                    className="object-cover"
+                  />
                   <Button
                     type="button"
                     variant="secondary"
@@ -107,9 +133,18 @@ export default function CreateEventPage() {
               ) : (
                 <label className="flex aspect-[16/9] cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-muted/50 hover:bg-muted transition-colors">
                   <ImageIcon className="h-12 w-12 text-muted-foreground/50 mb-3" />
-                  <span className="text-sm font-medium">Click to upload image</span>
-                  <span className="text-xs text-muted-foreground mt-1">PNG, JPG up to 10MB</span>
-                  <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+                  <span className="text-sm font-medium">
+                    Click to upload image
+                  </span>
+                  <span className="text-xs text-muted-foreground mt-1">
+                    PNG, JPG up to 10MB
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageChange}
+                  />
                 </label>
               )}
             </div>
@@ -125,7 +160,9 @@ export default function CreateEventPage() {
                   id="name"
                   placeholder="Give your event a catchy name"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                   required
                 />
               </div>
@@ -137,7 +174,9 @@ export default function CreateEventPage() {
                   placeholder="Describe your event, what to expect, what to bring..."
                   className="min-h-[150px]"
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
                   required
                 />
               </div>
@@ -146,7 +185,9 @@ export default function CreateEventPage() {
                 <Label htmlFor="category">Category *</Label>
                 <Select
                   value={formData.category}
-                  onValueChange={(value) => setFormData({ ...formData, category: value })}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, category: value })
+                  }
                   required
                 >
                   <SelectTrigger>
@@ -177,7 +218,9 @@ export default function CreateEventPage() {
                     type="date"
                     className="pl-10"
                     value={formData.date}
-                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, date: e.target.value })
+                    }
                     required
                   />
                 </div>
@@ -192,7 +235,9 @@ export default function CreateEventPage() {
                     type="time"
                     className="pl-10"
                     value={formData.time}
-                    onChange={(e) => setFormData({ ...formData, time: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, time: e.target.value })
+                    }
                     required
                   />
                 </div>
@@ -213,7 +258,9 @@ export default function CreateEventPage() {
                     placeholder="e.g., Central Park, Blue Note Jazz Club"
                     className="pl-10"
                     value={formData.location}
-                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, location: e.target.value })
+                    }
                     required
                   />
                 </div>
@@ -225,7 +272,9 @@ export default function CreateEventPage() {
                   id="address"
                   placeholder="Street address, city, state, zip"
                   value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, address: e.target.value })
+                  }
                   required
                 />
               </div>
@@ -234,7 +283,9 @@ export default function CreateEventPage() {
 
           {/* Participants & Price */}
           <GlowCard>
-            <Label className="text-base font-semibold">Participants & Pricing</Label>
+            <Label className="text-base font-semibold">
+              Participants & Pricing
+            </Label>
             <div className="mt-4 grid gap-4 sm:grid-cols-3">
               <div className="space-y-2">
                 <Label htmlFor="minParticipants">Min Participants</Label>
@@ -246,7 +297,12 @@ export default function CreateEventPage() {
                     min="1"
                     className="pl-10"
                     value={formData.minParticipants}
-                    onChange={(e) => setFormData({ ...formData, minParticipants: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        minParticipants: e.target.value,
+                      })
+                    }
                   />
                 </div>
               </div>
@@ -261,7 +317,12 @@ export default function CreateEventPage() {
                     min="1"
                     className="pl-10"
                     value={formData.maxParticipants}
-                    onChange={(e) => setFormData({ ...formData, maxParticipants: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        maxParticipants: e.target.value,
+                      })
+                    }
                   />
                 </div>
               </div>
@@ -277,17 +338,26 @@ export default function CreateEventPage() {
                     step="0.01"
                     className="pl-10"
                     value={formData.fee}
-                    onChange={(e) => setFormData({ ...formData, fee: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, fee: e.target.value })
+                    }
                   />
                 </div>
-                <p className="text-xs text-muted-foreground">Set to 0 for free events</p>
+                <p className="text-xs text-muted-foreground">
+                  Set to 0 for free events
+                </p>
               </div>
             </div>
           </GlowCard>
 
           {/* Submit */}
           <div className="flex gap-4">
-            <Button type="button" variant="outline" className="flex-1 bg-transparent" onClick={() => router.back()}>
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1 bg-transparent"
+              onClick={() => router.back()}
+            >
               Cancel
             </Button>
             <Button type="submit" className="flex-1" disabled={isSubmitting}>
@@ -297,5 +367,5 @@ export default function CreateEventPage() {
         </form>
       </div>
     </div>
-  )
+  );
 }

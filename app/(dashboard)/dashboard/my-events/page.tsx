@@ -1,21 +1,7 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { Calendar, Plus, Search, MoreVertical, Eye, Edit, Trash2, Users } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { GlowCard } from "@/components/glow-card"
-import { EventCard } from "@/components/event-card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { EventCard } from "@/components/event-card";
+import { GlowCard } from "@/components/glow-card";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,40 +11,71 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { useAuth } from "@/lib/auth-context"
-import { mockEvents } from "@/lib/mock-data"
-import { toast } from "sonner"
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/lib/auth-context";
+import { mockEvents } from "@/lib/mock-data";
+import {
+  Calendar,
+  Edit,
+  Eye,
+  MoreVertical,
+  Plus,
+  Search,
+  Trash2,
+  Users,
+} from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export default function MyEventsPage() {
-  const { user } = useAuth()
-  const [searchQuery, setSearchQuery] = useState("")
-  const [deleteEventId, setDeleteEventId] = useState<string | null>(null)
+  const { user } = useAuth();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [deleteEventId, setDeleteEventId] = useState<string | null>(null);
 
-  const isHost = user?.role === "host" || user?.role === "admin"
+  const isHost = user?.role === "HOST" || user?.role === "ADMIN";
 
   const myEvents = isHost
     ? mockEvents.filter((e) => e.hostId === user?.id)
-    : mockEvents.filter((e) => e.participants.some((p) => p.id === user?.id))
+    : mockEvents.filter((e) => e.participants.some((p) => p.id === user?.id));
 
-  const upcomingEvents = myEvents.filter((e) => new Date(e.date) > new Date())
-  const pastEvents = myEvents.filter((e) => new Date(e.date) <= new Date())
+  const upcomingEvents = myEvents.filter((e) => new Date(e.date) > new Date());
+  const pastEvents = myEvents.filter((e) => new Date(e.date) <= new Date());
 
-  const filteredUpcoming = upcomingEvents.filter((e) => e.name.toLowerCase().includes(searchQuery.toLowerCase()))
-  const filteredPast = pastEvents.filter((e) => e.name.toLowerCase().includes(searchQuery.toLowerCase()))
+  const filteredUpcoming = upcomingEvents.filter((e) =>
+    e.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  const filteredPast = pastEvents.filter((e) =>
+    e.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const handleDelete = () => {
-    toast.success("Event deleted successfully")
-    setDeleteEventId(null)
-  }
+    toast.success("Event deleted successfully");
+    setDeleteEventId(null);
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{isHost ? "My Hosted Events" : "My Events"}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            {isHost ? "My Hosted Events" : "My Events"}
+          </h1>
           <p className="text-muted-foreground">
-            {isHost ? "Manage and track your hosted events" : "Events you've joined"}
+            {isHost
+              ? "Manage and track your hosted events"
+              : "Events you've joined"}
           </p>
         </div>
         {isHost && (
@@ -86,7 +103,8 @@ export default function MyEventsPage() {
       <Tabs defaultValue="upcoming">
         <TabsList>
           <TabsTrigger value="upcoming" className="gap-2">
-            Upcoming <Badge variant="secondary">{filteredUpcoming.length}</Badge>
+            Upcoming{" "}
+            <Badge variant="secondary">{filteredUpcoming.length}</Badge>
           </TabsTrigger>
           <TabsTrigger value="past" className="gap-2">
             Past <Badge variant="secondary">{filteredPast.length}</Badge>
@@ -113,13 +131,19 @@ export default function MyEventsPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem asChild>
-                            <Link href={`/events/${event.id}`} className="flex items-center gap-2">
+                            <Link
+                              href={`/events/${event.id}`}
+                              className="flex items-center gap-2"
+                            >
                               <Eye className="h-4 w-4" />
                               View
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild>
-                            <Link href={`/events/edit/${event.id}`} className="flex items-center gap-2">
+                            <Link
+                              href={`/events/edit/${event.id}`}
+                              className="flex items-center gap-2"
+                            >
                               <Edit className="h-4 w-4" />
                               Edit
                             </Link>
@@ -148,10 +172,14 @@ export default function MyEventsPage() {
               <Calendar className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
               <h3 className="font-semibold">No upcoming events</h3>
               <p className="text-sm text-muted-foreground mt-1">
-                {isHost ? "Create your first event to get started" : "Join an event to see it here"}
+                {isHost
+                  ? "Create your first event to get started"
+                  : "Join an event to see it here"}
               </p>
               <Link href={isHost ? "/events/create" : "/events"}>
-                <Button className="mt-4">{isHost ? "Create Event" : "Browse Events"}</Button>
+                <Button className="mt-4">
+                  {isHost ? "Create Event" : "Browse Events"}
+                </Button>
               </Link>
             </GlowCard>
           )}
@@ -170,29 +198,38 @@ export default function MyEventsPage() {
             <GlowCard className="text-center py-12">
               <Calendar className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
               <h3 className="font-semibold">No past events</h3>
-              <p className="text-sm text-muted-foreground mt-1">Your completed events will appear here</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Your completed events will appear here
+              </p>
             </GlowCard>
           )}
         </TabsContent>
       </Tabs>
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!deleteEventId} onOpenChange={() => setDeleteEventId(null)}>
+      <AlertDialog
+        open={!!deleteEventId}
+        onOpenChange={() => setDeleteEventId(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the event and notify all participants.
+              This action cannot be undone. This will permanently delete the
+              event and notify all participants.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive hover:bg-destructive/90"
+            >
               Delete Event
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  )
+  );
 }
