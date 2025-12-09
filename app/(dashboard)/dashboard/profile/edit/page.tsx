@@ -1,32 +1,32 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import Image from "next/image"
-import { ArrowLeft, Upload, User, MapPin, X } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
-import { GlowCard } from "@/components/glow-card"
-import { useAuth } from "@/lib/auth-context"
-import { interestOptions } from "@/lib/mock-data"
-import { toast } from "sonner"
+import { GlowCard } from "@/components/glow-card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/lib/auth-context";
+import { interestOptions } from "@/lib/mock-data";
+import { ArrowLeft, MapPin, Upload, User, X } from "lucide-react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function EditProfilePage() {
-  const router = useRouter()
-  const { user, updateUser } = useAuth()
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const router = useRouter();
+  const { user, updateUser } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     fullName: "",
     bio: "",
     location: "",
     interests: [] as string[],
-  })
+  });
 
   useEffect(() => {
     if (user) {
@@ -35,27 +35,27 @@ export default function EditProfilePage() {
         bio: user.bio || "",
         location: user.address || user.location || "",
         interests: user.interests || [],
-      })
-      setImagePreview(user.profilePhoto || user.avatar || null)
+      });
+      setImagePreview(user.profilePhoto || user.avatar || null);
     } else {
-      router.push("/login")
+      router.push("/login");
     }
-  }, [user, router])
+  }, [user, router]);
 
   if (!user) {
-    return null
+    return null;
   }
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader()
+      const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result as string)
-      }
-      reader.readAsDataURL(file)
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
-  }
+  };
 
   const toggleInterest = (interest: string) => {
     setFormData((prev) => ({
@@ -63,50 +63,56 @@ export default function EditProfilePage() {
       interests: prev.interests.includes(interest)
         ? prev.interests.filter((i) => i !== interest)
         : [...prev.interests, interest],
-    }))
-  }
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
+    e.preventDefault();
+    setIsSubmitting(true);
 
     try {
-      const formDataToSend = new FormData()
-      formDataToSend.append("fullName", formData.fullName)
-      formDataToSend.append("bio", formData.bio)
-      formDataToSend.append("address", formData.location)
-      formDataToSend.append("interests", JSON.stringify(formData.interests))
+      const formDataToSend = new FormData();
+      formDataToSend.append("fullName", formData.fullName);
+      formDataToSend.append("bio", formData.bio);
+      formDataToSend.append("address", formData.location);
+      formDataToSend.append("interests", JSON.stringify(formData.interests));
 
-      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+      const fileInput = document.querySelector(
+        'input[type="file"]'
+      ) as HTMLInputElement;
       if (fileInput?.files?.[0]) {
-        formDataToSend.append("profilePhoto", fileInput.files[0])
+        formDataToSend.append("profilePhoto", fileInput.files[0]);
       }
 
-      const { userApi } = await import("@/lib/userApi")
-      const response = await userApi.updateMyProfile(formDataToSend)
+      const { userApi } = await import("@/lib/api/userApi");
+      const response = await userApi.updateMyProfile(formDataToSend);
 
       if (response.success) {
-        const { authApi } = await import("@/lib/api")
-        const userResponse = await authApi.getMe()
+        const { authApi } = await import("@/lib/api/authApi");
+        const userResponse = await authApi.getMe();
         if (userResponse.success && userResponse.data) {
-          updateUser(userResponse.data)
+          updateUser(userResponse.data);
         }
-        toast.success("Profile updated successfully!")
-        router.push("/dashboard")
+        toast.success("Profile updated successfully!");
+        router.push("/dashboard");
       } else {
-        toast.error(response.message || "Failed to update profile")
+        toast.error(response.message || "Failed to update profile");
       }
     } catch (error) {
-      toast.error("Network error. Please try again.")
+      toast.error("Network error. Please try again.");
     }
 
-    setIsSubmitting(false)
-  }
+    setIsSubmitting(false);
+  };
 
   return (
     <div className="py-8">
       <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8">
-        <Button variant="ghost" className="mb-6 gap-2" onClick={() => router.back()}>
+        <Button
+          variant="ghost"
+          className="mb-6 gap-2"
+          onClick={() => router.back()}
+        >
           <ArrowLeft className="h-4 w-4" />
           Back
         </Button>
@@ -115,7 +121,9 @@ export default function EditProfilePage() {
           <h1 className="text-3xl font-bold tracking-tight">
             Edit <span className="gradient-text">Profile</span>
           </h1>
-          <p className="mt-2 text-muted-foreground">Update your profile information and interests</p>
+          <p className="mt-2 text-muted-foreground">
+            Update your profile information and interests
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -125,7 +133,12 @@ export default function EditProfilePage() {
             <div className="mt-4 flex items-center gap-6">
               <div className="relative h-24 w-24 rounded-xl overflow-hidden bg-muted">
                 {imagePreview ? (
-                  <Image src={imagePreview || "/placeholder.svg"} alt="Profile preview" fill className="object-cover" />
+                  <Image
+                    src={imagePreview || "/placeholder.svg"}
+                    alt="Profile preview"
+                    fill
+                    className="object-cover"
+                  />
                 ) : (
                   <div className="flex h-full items-center justify-center">
                     <User className="h-10 w-10 text-muted-foreground" />
@@ -134,15 +147,27 @@ export default function EditProfilePage() {
               </div>
               <div className="space-y-2">
                 <label className="cursor-pointer">
-                  <Button type="button" variant="outline" className="gap-2 bg-transparent" asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="gap-2 bg-transparent"
+                    asChild
+                  >
                     <span>
                       <Upload className="h-4 w-4" />
                       Upload Photo
                     </span>
                   </Button>
-                  <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageChange}
+                  />
                 </label>
-                <p className="text-xs text-muted-foreground">PNG, JPG up to 5MB</p>
+                <p className="text-xs text-muted-foreground">
+                  PNG, JPG up to 5MB
+                </p>
               </div>
             </div>
           </GlowCard>
@@ -160,7 +185,9 @@ export default function EditProfilePage() {
                     placeholder="Your full name"
                     className="pl-10"
                     value={formData.fullName}
-                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, fullName: e.target.value })
+                    }
                     required
                   />
                 </div>
@@ -175,7 +202,9 @@ export default function EditProfilePage() {
                     placeholder="Your address"
                     className="pl-10"
                     value={formData.location}
-                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, location: e.target.value })
+                    }
                   />
                 </div>
               </div>
@@ -187,9 +216,13 @@ export default function EditProfilePage() {
                   placeholder="Tell others about yourself..."
                   className="min-h-[120px]"
                   value={formData.bio}
-                  onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, bio: e.target.value })
+                  }
                 />
-                <p className="text-xs text-muted-foreground">{formData.bio.length}/500 characters</p>
+                <p className="text-xs text-muted-foreground">
+                  {formData.bio.length}/500 characters
+                </p>
               </div>
             </div>
           </GlowCard>
@@ -235,7 +268,12 @@ export default function EditProfilePage() {
 
           {/* Submit */}
           <div className="flex gap-4">
-            <Button type="button" variant="outline" className="flex-1 bg-transparent" onClick={() => router.back()}>
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1 bg-transparent"
+              onClick={() => router.back()}
+            >
               Cancel
             </Button>
             <Button type="submit" className="flex-1" disabled={isSubmitting}>
@@ -245,5 +283,5 @@ export default function EditProfilePage() {
         </form>
       </div>
     </div>
-  )
+  );
 }

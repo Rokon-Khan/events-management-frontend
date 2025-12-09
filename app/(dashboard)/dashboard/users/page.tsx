@@ -21,6 +21,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -35,25 +43,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+import { userApi } from "@/lib/api/userApi";
 import { useAuth } from "@/lib/auth-context";
-import { userApi } from "@/lib/userApi";
 import type { User } from "@/lib/types";
-import {
-  Ban,
-  Eye,
-  MoreVertical,
-  Search,
-  Shield,
-} from "lucide-react";
-import { useState, useEffect } from "react";
+import { Ban, Eye, MoreVertical, Search, Shield } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function ManageUsersPage() {
@@ -145,7 +139,13 @@ export default function ManageUsersPage() {
             }}
           />
         </div>
-        <Select value={roleFilter} onValueChange={(v) => { setRoleFilter(v); setPage(1); }}>
+        <Select
+          value={roleFilter}
+          onValueChange={(v) => {
+            setRoleFilter(v);
+            setPage(1);
+          }}
+        >
           <SelectTrigger className="w-40">
             <SelectValue placeholder="Filter by role" />
           </SelectTrigger>
@@ -174,23 +174,35 @@ export default function ManageUsersPage() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  <TableCell
+                    colSpan={6}
+                    className="text-center py-8 text-muted-foreground"
+                  >
                     Loading...
                   </TableCell>
                 </TableRow>
               ) : users.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  <TableCell
+                    colSpan={6}
+                    className="text-center py-8 text-muted-foreground"
+                  >
                     No users found
                   </TableCell>
                 </TableRow>
               ) : (
                 users.map((user) => (
-                <TableRow key={user.id}>
+                  <TableRow key={user.id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar className="h-9 w-9">
-                          <AvatarImage src={user.profilePhoto || user.avatar || "/placeholder.svg"} />
+                          <AvatarImage
+                            src={
+                              user.profilePhoto ||
+                              user.avatar ||
+                              "/placeholder.svg"
+                            }
+                          />
                           <AvatarFallback>
                             {user.fullName.charAt(0)}
                           </AvatarFallback>
@@ -217,12 +229,18 @@ export default function ManageUsersPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={user.status === "ACTIVE" ? "default" : "destructive"}>
+                      <Badge
+                        variant={
+                          user.status === "ACTIVE" ? "default" : "destructive"
+                        }
+                      >
                         {user.status}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {user.role === "HOST" ? `${user.hostedEvents || 0} hosted` : `${user.pertcipatedEvents || 0} joined`}
+                      {user.role === "HOST"
+                        ? `${user.hostedEvents || 0} hosted`
+                        : `${user.pertcipatedEvents || 0} joined`}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {new Date(user.createdAt).toLocaleDateString()}
@@ -248,11 +266,15 @@ export default function ManageUsersPage() {
                               className="text-destructive focus:text-destructive flex items-center gap-2"
                               onClick={() => {
                                 setSelectedUser(user);
-                                setActionType(user.status === "ACTIVE" ? "ban" : "activate");
+                                setActionType(
+                                  user.status === "ACTIVE" ? "ban" : "activate"
+                                );
                               }}
                             >
                               <Ban className="h-4 w-4" />
-                              {user.status === "ACTIVE" ? "Block User" : "Activate User"}
+                              {user.status === "ACTIVE"
+                                ? "Block User"
+                                : "Activate User"}
                             </DropdownMenuItem>
                           )}
                         </DropdownMenuContent>
@@ -272,11 +294,18 @@ export default function ManageUsersPage() {
           <PaginationContent>
             <PaginationItem>
               <PaginationPrevious
-                onClick={() => setPage(p => Math.max(1, p - 1))}
-                className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                className={
+                  page === 1
+                    ? "pointer-events-none opacity-50"
+                    : "cursor-pointer"
+                }
               />
             </PaginationItem>
-            {Array.from({ length: Math.ceil(meta.total / meta.limit) }, (_, i) => i + 1).map((p) => (
+            {Array.from(
+              { length: Math.ceil(meta.total / meta.limit) },
+              (_, i) => i + 1
+            ).map((p) => (
               <PaginationItem key={p}>
                 <PaginationLink
                   onClick={() => setPage(p)}
@@ -289,8 +318,16 @@ export default function ManageUsersPage() {
             ))}
             <PaginationItem>
               <PaginationNext
-                onClick={() => setPage(p => Math.min(Math.ceil(meta.total / meta.limit), p + 1))}
-                className={page === Math.ceil(meta.total / meta.limit) ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                onClick={() =>
+                  setPage((p) =>
+                    Math.min(Math.ceil(meta.total / meta.limit), p + 1)
+                  )
+                }
+                className={
+                  page === Math.ceil(meta.total / meta.limit)
+                    ? "pointer-events-none opacity-50"
+                    : "cursor-pointer"
+                }
               />
             </PaginationItem>
           </PaginationContent>
@@ -307,22 +344,42 @@ export default function ManageUsersPage() {
             <div className="space-y-4">
               <div className="flex items-center gap-4">
                 <Avatar className="h-16 w-16">
-                  <AvatarImage src={viewUser.profilePhoto || viewUser.avatar || "/placeholder.svg"} />
+                  <AvatarImage
+                    src={
+                      viewUser.profilePhoto ||
+                      viewUser.avatar ||
+                      "/placeholder.svg"
+                    }
+                  />
                   <AvatarFallback>{viewUser.fullName.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div>
                   <h3 className="font-semibold text-lg">{viewUser.fullName}</h3>
-                  <p className="text-sm text-muted-foreground">{viewUser.email}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {viewUser.email}
+                  </p>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Role</p>
-                  <Badge variant={viewUser.role === "ADMIN" ? "destructive" : "default"}>{viewUser.role}</Badge>
+                  <Badge
+                    variant={
+                      viewUser.role === "ADMIN" ? "destructive" : "default"
+                    }
+                  >
+                    {viewUser.role}
+                  </Badge>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Status</p>
-                  <Badge variant={viewUser.status === "ACTIVE" ? "default" : "destructive"}>{viewUser.status}</Badge>
+                  <Badge
+                    variant={
+                      viewUser.status === "ACTIVE" ? "default" : "destructive"
+                    }
+                  >
+                    {viewUser.status}
+                  </Badge>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Phone</p>
@@ -338,15 +395,23 @@ export default function ManageUsersPage() {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Date of Birth</p>
-                  <p className="font-medium">{viewUser.dateOfBirth ? new Date(viewUser.dateOfBirth).toLocaleDateString() : "-"}</p>
+                  <p className="font-medium">
+                    {viewUser.dateOfBirth
+                      ? new Date(viewUser.dateOfBirth).toLocaleDateString()
+                      : "-"}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Hosted Events</p>
                   <p className="font-medium">{viewUser.hostedEvents || 0}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Participated Events</p>
-                  <p className="font-medium">{viewUser.pertcipatedEvents || 0}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Participated Events
+                  </p>
+                  <p className="font-medium">
+                    {viewUser.pertcipatedEvents || 0}
+                  </p>
                 </div>
               </div>
               {viewUser.bio && (
@@ -357,10 +422,14 @@ export default function ManageUsersPage() {
               )}
               {viewUser.interests && viewUser.interests.length > 0 && (
                 <div>
-                  <p className="text-sm text-muted-foreground mb-2">Interests</p>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Interests
+                  </p>
                   <div className="flex flex-wrap gap-2">
                     {viewUser.interests.map((interest) => (
-                      <Badge key={interest} variant="outline">{interest}</Badge>
+                      <Badge key={interest} variant="outline">
+                        {interest}
+                      </Badge>
                     ))}
                   </div>
                 </div>
