@@ -73,3 +73,25 @@ export interface Booking {
   paidAmount: number;
   bookedAt: string;
 }
+
+export interface Payment {
+  id: string;
+  amount: number;
+  paymentMethod: string;
+  paymentStatus: "PENDING" | "COMPLETED" | "FAILED" | "REFUNDED";
+  transactionId: string;
+  createdAt: string;
+  updatedAt: string;
+  userId: string;
+  eventId: string;
+  user: {
+    id: string;
+    fullName: string;
+    email: string;
+  };
+  event: {
+    id: string;
+    title: string;
+    joiningFee: number;
+  };
+}

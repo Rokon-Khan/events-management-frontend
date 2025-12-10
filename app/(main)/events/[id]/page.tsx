@@ -1,15 +1,9 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
-import Image from "next/image"
-import Link from "next/link"
-import { Calendar, Clock, MapPin, Users, Share2, Heart, Star, ArrowLeft, Check, AlertCircle } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Separator } from "@/components/ui/separator"
-import { GlowCard } from "@/components/glow-card"
+import { GlowCard } from "@/components/glow-card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -17,47 +11,70 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { useAuth } from "@/lib/auth-context"
-import { eventApi } from "@/lib/eventApi"
-import type { Event } from "@/lib/types"
-import { toast } from "sonner"
+} from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/lib/auth-context";
+import { eventApi } from "@/lib/eventApi";
+import { paymentApi } from "@/lib/paymentApi";
+import type { Event } from "@/lib/types";
+import { StripePayment } from "@/components/stripe-payment";
+import {
+  AlertCircle,
+  ArrowLeft,
+  Calendar,
+  Check,
+  Clock,
+  Heart,
+  MapPin,
+  Share2,
+  Star,
+  Users,
+} from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function EventDetailPage() {
-  const params = useParams()
-  const router = useRouter()
-  const { user } = useAuth()
-  const [event, setEvent] = useState<Event | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isJoinDialogOpen, setIsJoinDialogOpen] = useState(false)
-  const [isJoining, setIsJoining] = useState(false)
-  const [hasJoined, setHasJoined] = useState(false)
-  const [isSaved, setIsSaved] = useState(false)
+  const params = useParams();
+  const router = useRouter();
+  const { user } = useAuth();
+  const [event, setEvent] = useState<Event | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isJoinDialogOpen, setIsJoinDialogOpen] = useState(false);
+  const [isJoining, setIsJoining] = useState(false);
+  const [hasJoined, setHasJoined] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [paymentData, setPaymentData] = useState<{
+    clientSecret: string;
+    amount: number;
+  } | null>(null);
 
   useEffect(() => {
-    fetchEvent()
-  }, [params.id])
+    fetchEvent();
+  }, [params.id]);
 
   const fetchEvent = async () => {
     try {
-      const response = await eventApi.getEventById(params.id as string)
+      const response = await eventApi.getEventById(params.id as string);
       if (response.success) {
-        setEvent(response.data)
+        setEvent(response.data);
       } else {
-        toast.error("Event not found")
+        toast.error("Event not found");
       }
     } catch (error) {
-      toast.error("Failed to load event")
+      toast.error("Failed to load event");
     }
-    setIsLoading(false)
-  }
+    setIsLoading(false);
+  };
 
   if (isLoading) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center">
         <div className="text-center">Loading...</div>
       </div>
-    )
+    );
   }
 
   if (!event) {
@@ -65,61 +82,82 @@ export default function EventDetailPage() {
       <div className="flex min-h-[60vh] flex-col items-center justify-center">
         <AlertCircle className="h-16 w-16 text-muted-foreground/50 mb-4" />
         <h1 className="text-2xl font-bold">Event not found</h1>
-        <p className="text-muted-foreground mt-2">This event may have been removed or doesn't exist.</p>
+        <p className="text-muted-foreground mt-2">
+          This event may have been removed or doesn't exist.
+        </p>
         <Button className="mt-4" onClick={() => router.push("/events")}>
           Browse Events
         </Button>
       </div>
-    )
+    );
   }
 
-  const spotsLeft = event.maxParticipants - event.currentParticipants
-  const isFull = spotsLeft <= 0
-  const eventDate = new Date(event.date)
-  const isPast = eventDate < new Date()
-  const hasAttended = false // Would need participant data from API
+  const spotsLeft = event.maxParticipants - event.currentParticipants;
+  const isFull = spotsLeft <= 0;
+  const eventDate = new Date(event.date);
+  const isPast = eventDate < new Date();
+  const hasAttended = false; // Would need participant data from API
 
   const handleJoin = async () => {
     if (!user) {
-      toast.error("Please log in to join events")
-      router.push("/login")
-      return
+      toast.error("Please log in to join events");
+      router.push("/login");
+      return;
     }
 
-    setIsJoining(true)
+    setIsJoining(true);
     try {
-      const response = await eventApi.participateInEvent(event.id)
-      if (response.success) {
-        setHasJoined(true)
-        setIsJoinDialogOpen(false)
-        toast.success("Successfully joined the event!")
-        fetchEvent() // Refresh event data
+      if (event.joiningFee > 0) {
+        // Create payment for paid events
+        const paymentResponse = await paymentApi.createPayment({ eventId: event.id });
+        if (paymentResponse.success) {
+          setPaymentData({
+            clientSecret: paymentResponse.data.clientSecret,
+            amount: event.joiningFee,
+          });
+          setIsJoinDialogOpen(false);
+        } else {
+          toast.error(paymentResponse.message || "Failed to initiate payment");
+        }
       } else {
-        toast.error(response.message || "Failed to join event")
+        // Free event - direct participation
+        const response = await eventApi.participateInEvent(event.id);
+        if (response.success) {
+          setHasJoined(true);
+          setIsJoinDialogOpen(false);
+          toast.success("Successfully joined the event!");
+          fetchEvent(); // Refresh event data
+        } else {
+          toast.error(response.message || "Failed to join event");
+        }
       }
     } catch (error) {
-      toast.error("Network error. Please try again.")
+      toast.error("Network error. Please try again.");
     }
-    setIsJoining(false)
-  }
+    setIsJoining(false);
+  };
 
   const handleShare = async () => {
     if (navigator.share) {
       await navigator.share({
-        title: event.name,
+        title: event.title,
         text: event.description,
         url: window.location.href,
-      })
+      });
     } else {
-      await navigator.clipboard.writeText(window.location.href)
-      toast.success("Link copied to clipboard!")
+      await navigator.clipboard.writeText(window.location.href);
+      toast.success("Link copied to clipboard!");
     }
-  }
+  };
 
   return (
     <div className="py-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <Button variant="ghost" className="mb-6 gap-2" onClick={() => router.back()}>
+        <Button
+          variant="ghost"
+          className="mb-6 gap-2"
+          onClick={() => router.back()}
+        >
           <ArrowLeft className="h-4 w-4" />
           Back to Events
         </Button>
@@ -128,21 +166,29 @@ export default function EventDetailPage() {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             <div className="relative aspect-[16/9] overflow-hidden rounded-2xl">
-              <Image src={event.eventImage || "/placeholder.svg"} alt={event.title} fill className="object-cover" priority />
+              <Image
+                src={event.eventImage || "/placeholder.svg"}
+                alt={event.title}
+                fill
+                className="object-cover"
+                priority
+              />
               <div className="absolute left-4 top-4">
-                <Badge className="bg-primary/90 backdrop-blur-sm">{event.eventCategory}</Badge>
+                <Badge className="bg-primary/90 backdrop-blur-sm">
+                  {event.eventCategory}
+                </Badge>
               </div>
               {event.status !== "OPEN" && (
                 <div className="absolute right-4 top-4">
-                  <Badge variant="destructive">
-                    {event.status}
-                  </Badge>
+                  <Badge variant="destructive">{event.status}</Badge>
                 </div>
               )}
             </div>
 
             <div>
-              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{event.title}</h1>
+              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+                {event.title}
+              </h1>
               <div className="mt-4 flex flex-wrap gap-4 text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <Calendar className="h-5 w-5" />
@@ -165,7 +211,9 @@ export default function EventDetailPage() {
             {/* Description */}
             <div>
               <h2 className="text-xl font-semibold mb-3">About this event</h2>
-              <p className="text-muted-foreground leading-relaxed">{event.description}</p>
+              <p className="text-muted-foreground leading-relaxed">
+                {event.description}
+              </p>
             </div>
 
             <Separator />
@@ -177,7 +225,9 @@ export default function EventDetailPage() {
                 <MapPin className="h-5 w-5 mt-0.5 text-primary" />
                 <div>
                   <p className="font-medium">{event.location}</p>
-                  <p className="text-sm text-muted-foreground">{event.address}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {event.location}
+                  </p>
                 </div>
               </div>
               <div className="mt-4 aspect-[16/9] rounded-xl bg-muted overflow-hidden">
@@ -186,7 +236,9 @@ export default function EventDetailPage() {
                   height="100%"
                   style={{ border: 0 }}
                   loading="lazy"
-                  src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodeURIComponent(event.address)}`}
+                  src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodeURIComponent(
+                    event.location
+                  )}`}
                 />
               </div>
             </div>
@@ -195,7 +247,8 @@ export default function EventDetailPage() {
 
             <div>
               <h2 className="text-xl font-semibold mb-3">
-                Participants ({event.currentParticipants}/{event.maxParticipants})
+                Participants ({event.currentParticipants}/
+                {event.maxParticipants})
               </h2>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">
@@ -225,11 +278,17 @@ export default function EventDetailPage() {
                     <div>
                       {event.joiningFee > 0 ? (
                         <div className="flex items-baseline gap-1">
-                          <span className="text-3xl font-bold">${event.joiningFee}</span>
-                          <span className="text-muted-foreground">/ person</span>
+                          <span className="text-3xl font-bold">
+                            ${event.joiningFee}
+                          </span>
+                          <span className="text-muted-foreground">
+                            / person
+                          </span>
                         </div>
                       ) : (
-                        <span className="text-3xl font-bold text-primary">Free</span>
+                        <span className="text-3xl font-bold text-primary">
+                          Free
+                        </span>
                       )}
                     </div>
                   </div>
@@ -237,7 +296,8 @@ export default function EventDetailPage() {
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Users className="h-4 w-4" />
                     <span>
-                      {event.currentParticipants} joined · {spotsLeft} spots left
+                      {event.currentParticipants} joined · {spotsLeft} spots
+                      left
                     </span>
                   </div>
 
@@ -255,91 +315,119 @@ export default function EventDetailPage() {
                       Event is full
                     </Button>
                   ) : (
-                    <Button className="w-full" onClick={() => setIsJoinDialogOpen(true)}>
-                      Join Event {event.joiningFee > 0 && `· $${event.joiningFee}`}
+                    <Button
+                      className="w-full"
+                      onClick={() => setIsJoinDialogOpen(true)}
+                      disabled={event.status !== "ONGOING"}
+                    >
+                      {event.joiningFee > 0
+                        ? `Pay $${event.joiningFee} to Join`
+                        : "Join Event"}
                     </Button>
                   )}
 
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
-                      className="flex-1 bg-transparent"
-                      onClick={() => {
-                        setIsSaved(!isSaved)
-                        toast.success(isSaved ? "Removed from saved" : "Saved to your list")
-                      }}
+                      size="sm"
+                      className="flex-1"
+                      onClick={handleShare}
                     >
-                      <Heart className={`mr-2 h-4 w-4 ${isSaved ? "fill-primary text-primary" : ""}`} />
-                      {isSaved ? "Saved" : "Save"}
-                    </Button>
-                    <Button variant="outline" className="flex-1 bg-transparent" onClick={handleShare}>
                       <Share2 className="mr-2 h-4 w-4" />
                       Share
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsSaved(!isSaved)}
+                    >
+                      <Heart
+                        className={`h-4 w-4 ${
+                          isSaved ? "fill-current text-red-500" : ""
+                        }`}
+                      />
                     </Button>
                   </div>
                 </div>
               </GlowCard>
 
+              {/* Host Info */}
               <GlowCard>
-                <h3 className="font-semibold mb-4">Meet your host</h3>
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-14 w-14">
-                    <AvatarImage src={event.user.profilePhoto || "/placeholder.svg"} />
-                    <AvatarFallback>{event.user.fullName.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium">{event.user.fullName}</p>
-                    <p className="text-sm text-muted-foreground">{event.user.email}</p>
+                <div className="space-y-4">
+                  <h3 className="font-semibold">Hosted by</h3>
+                  <div className="flex items-center gap-3">
+                    <Avatar>
+                      <AvatarImage src={event.user?.profilePhoto} />
+                      <AvatarFallback>
+                        {event.user?.fullName?.charAt(0) || "H"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium">
+                        {event.user?.fullName || "Event Host"}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {event.user?.email}
+                      </p>
+                    </div>
                   </div>
+                  <Button variant="outline" className="w-full" asChild>
+                    <Link href={`/profile/${event.userId}`}>View Profile</Link>
+                  </Button>
                 </div>
               </GlowCard>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Join Dialog */}
-      <Dialog open={isJoinDialogOpen} onOpenChange={setIsJoinDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirm your booking</DialogTitle>
-            <DialogDescription>You're about to join "{event.title}"</DialogDescription>
-          </DialogHeader>
-          <div className="py-4 space-y-4">
-            <div className="flex items-center justify-between text-sm">
-              <span>Event fee</span>
-              <span className="font-medium">{event.joiningFee > 0 ? `$${event.joiningFee}` : "Free"}</span>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span>Date</span>
-              <span className="font-medium">
-                {eventDate.toLocaleDateString("en-US", {
-                  weekday: "short",
-                  month: "short",
-                  day: "numeric",
-                })}
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span>Time</span>
-              <span className="font-medium">{event.time}</span>
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between font-semibold">
-              <span>Total</span>
-              <span>{event.joiningFee > 0 ? `$${event.joiningFee}` : "Free"}</span>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsJoinDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleJoin} disabled={isJoining}>
-              {isJoining ? "Processing..." : "Confirm & Join"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        {/* Join Event Dialog */}
+        <Dialog open={isJoinDialogOpen} onOpenChange={setIsJoinDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Join Event</DialogTitle>
+              <DialogDescription>
+                {event.joiningFee > 0
+                  ? `This event requires a payment of $${event.joiningFee}. You will be redirected to complete the payment.`
+                  : "Are you sure you want to join this event?"}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setIsJoinDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleJoin} disabled={isJoining}>
+                {isJoining
+                  ? "Processing..."
+                  : event.joiningFee > 0
+                  ? "Proceed to Payment"
+                  : "Join Event"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Stripe Payment Dialog */}
+        {paymentData && (
+          <Dialog open={!!paymentData} onOpenChange={() => setPaymentData(null)}>
+            <DialogContent className="max-w-md">
+              <StripePayment
+                clientSecret={paymentData.clientSecret}
+                amount={paymentData.amount}
+                eventTitle={event.title}
+                onSuccess={() => {
+                  setPaymentData(null);
+                  setHasJoined(true);
+                  fetchEvent();
+                }}
+                onCancel={() => setPaymentData(null)}
+              />
+            </DialogContent>
+          </Dialog>
+        )}
+      </div>
     </div>
-  )
+  );
 }

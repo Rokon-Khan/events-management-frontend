@@ -2,28 +2,35 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5
 
 export const paymentApi = {
   // Create payment
-  createPayment: async (paymentData: FormData) => {
+  createPayment: async (paymentData: { eventId: string }) => {
     const response = await fetch(`${API_BASE_URL}/payments`, {
       method: "POST",
       credentials: "include",
-      body: paymentData,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(paymentData),
     });
     return response.json();
   },
 
   // Verify payment
-  verifyPayment: async (verificationData: FormData) => {
+  verifyPayment: async (verificationData: { paymentIntentId: string }) => {
     const response = await fetch(`${API_BASE_URL}/payments/verify`, {
       method: "POST",
       credentials: "include",
-      body: verificationData,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(verificationData),
     });
     return response.json();
   },
 
   // Get all payments (Admin/Host only)
-  getAllPayments: async () => {
-    const response = await fetch(`${API_BASE_URL}/payments`, {
+  getAllPayments: async (params?: URLSearchParams) => {
+    const url = params ? `${API_BASE_URL}/payments?${params.toString()}` : `${API_BASE_URL}/payments`;
+    const response = await fetch(url, {
       method: "GET",
       credentials: "include",
     });
