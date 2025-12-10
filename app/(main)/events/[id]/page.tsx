@@ -1,6 +1,8 @@
 "use client";
 
 import { GlowCard } from "@/components/glow-card";
+import { ReviewForm } from "@/components/review-form";
+import { StripePayment } from "@/components/stripe-payment";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,8 +18,8 @@ import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/lib/auth-context";
 import { eventApi } from "@/lib/eventApi";
 import { paymentApi } from "@/lib/paymentApi";
+import { reviewApi } from "@/lib/reviewApi";
 import type { Event } from "@/lib/types";
-import { StripePayment } from "@/components/stripe-payment";
 import {
   AlertCircle,
   ArrowLeft,
@@ -50,10 +52,23 @@ export default function EventDetailPage() {
     clientSecret: string;
     amount: number;
   } | null>(null);
+  const [hostReviews, setHostReviews] = useState<any[]>([]);
 
   useEffect(() => {
     fetchEvent();
+    fetchHostReviews();
   }, [params.id]);
+
+  const fetchHostReviews = async () => {
+    try {
+      const response = await reviewApi.getAllReviews();
+      if (response.success && response.data) {
+        setHostReviews(response.data);
+      }
+    } catch (error) {
+      console.error("Failed to load reviews");
+    }
+  };
 
   const fetchEvent = async () => {
     try {
@@ -109,7 +124,9 @@ export default function EventDetailPage() {
     try {
       if (event.joiningFee > 0) {
         // Create payment for paid events
-        const paymentResponse = await paymentApi.createPayment({ eventId: event.id });
+        const paymentResponse = await paymentApi.createPayment({
+          eventId: event.id,
+        });
         if (paymentResponse.success) {
           setPaymentData({
             clientSecret: paymentResponse.data.clientSecret,
@@ -259,12 +276,64 @@ export default function EventDetailPage() {
 
             <Separator />
 
+            {/* Host Reviews */}
             <div>
-              <h2 className="text-xl font-semibold mb-4">Host Reviews</h2>
-              <GlowCard className="text-center py-8">
-                <Star className="h-10 w-10 text-muted-foreground/50 mx-auto mb-2" />
-                <p className="text-muted-foreground">No reviews yet</p>
-              </GlowCard>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold">Host Reviews</h2>
+                {hasAttended && (
+                  <ReviewForm
+                    eventId={event.id}
+                    hostId={event.user.id}
+                    hostName={event.user.fullName}
+                  />
+                )}
+              </div>
+              {hostReviews.length > 0 ? (
+                <div className="space-y-4">
+                  {hostReviews.map((review) => (
+                    <GlowCard key={review.id} className="p-4">
+                      <div className="flex items-start gap-3">
+                        <Avatar>
+                          <AvatarImage
+                            src={review.user.avatar || "/placeholder.svg"}
+                          />
+                          <AvatarFallback>
+                            {review.user.fullName.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium">
+                              {review.user.fullName}
+                            </span>
+                            <div className="flex items-center gap-1">
+                              {Array.from({ length: review.rating }).map(
+                                (_, i) => (
+                                  <Star
+                                    key={i}
+                                    className="h-4 w-4 fill-primary text-primary"
+                                  />
+                                )
+                              )}
+                            </div>
+                          </div>
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            {review.comment}
+                          </p>
+                          <p className="mt-2 text-xs text-muted-foreground">
+                            {new Date(review.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                    </GlowCard>
+                  ))}
+                </div>
+              ) : (
+                <GlowCard className="text-center py-8">
+                  <Star className="h-10 w-10 text-muted-foreground/50 mx-auto mb-2" />
+                  <p className="text-muted-foreground">No reviews yet</p>
+                </GlowCard>
+              )}
             </div>
           </div>
 
@@ -411,7 +480,10 @@ export default function EventDetailPage() {
 
         {/* Stripe Payment Dialog */}
         {paymentData && (
-          <Dialog open={!!paymentData} onOpenChange={() => setPaymentData(null)}>
+          <Dialog
+            open={!!paymentData}
+            onOpenChange={() => setPaymentData(null)}
+          >
             <DialogContent className="max-w-md">
               <StripePayment
                 clientSecret={paymentData.clientSecret}
