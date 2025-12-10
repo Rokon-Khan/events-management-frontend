@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
@@ -10,7 +10,6 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { GlowCard } from "@/components/glow-card"
-import { ReviewForm } from "@/components/review-form"
 import {
   Dialog,
   DialogContent,
@@ -20,20 +19,46 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { useAuth } from "@/lib/auth-context"
-import { mockEvents, mockReviews } from "@/lib/mock-data"
+import { eventApi } from "@/lib/eventApi"
+import type { Event } from "@/lib/types"
 import { toast } from "sonner"
 
 export default function EventDetailPage() {
   const params = useParams()
   const router = useRouter()
   const { user } = useAuth()
+  const [event, setEvent] = useState<Event | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const [isJoinDialogOpen, setIsJoinDialogOpen] = useState(false)
   const [isJoining, setIsJoining] = useState(false)
   const [hasJoined, setHasJoined] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
 
-  const event = mockEvents.find((e) => e.id === params.id)
-  const hostReviews = mockReviews.filter((r) => r.hostId === event?.hostId)
+  useEffect(() => {
+    fetchEvent()
+  }, [params.id])
+
+  const fetchEvent = async () => {
+    try {
+      const response = await eventApi.getEventById(params.id as string)
+      if (response.success) {
+        setEvent(response.data)
+      } else {
+        toast.error("Event not found")
+      }
+    } catch (error) {
+      toast.error("Failed to load event")
+    }
+    setIsLoading(false)
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center">
+        <div className="text-center">Loading...</div>
+      </div>
+    )
+  }
 
   if (!event) {
     return (
@@ -52,7 +77,7 @@ export default function EventDetailPage() {
   const isFull = spotsLeft <= 0
   const eventDate = new Date(event.date)
   const isPast = eventDate < new Date()
-  const hasAttended = isPast && event.participants.some((p) => p.id === user?.id)
+  const hasAttended = false // Would need participant data from API
 
   const handleJoin = async () => {
     if (!user) {
@@ -62,11 +87,20 @@ export default function EventDetailPage() {
     }
 
     setIsJoining(true)
-    await new Promise((r) => setTimeout(r, 1500))
+    try {
+      const response = await eventApi.participateInEvent(event.id)
+      if (response.success) {
+        setHasJoined(true)
+        setIsJoinDialogOpen(false)
+        toast.success("Successfully joined the event!")
+        fetchEvent() // Refresh event data
+      } else {
+        toast.error(response.message || "Failed to join event")
+      }
+    } catch (error) {
+      toast.error("Network error. Please try again.")
+    }
     setIsJoining(false)
-    setHasJoined(true)
-    setIsJoinDialogOpen(false)
-    toast.success("Successfully joined the event!")
   }
 
   const handleShare = async () => {
@@ -93,24 +127,22 @@ export default function EventDetailPage() {
         <div className="grid gap-8 lg:grid-cols-3">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Event Image */}
             <div className="relative aspect-[16/9] overflow-hidden rounded-2xl">
-              <Image src={event.image || "/placeholder.svg"} alt={event.name} fill className="object-cover" priority />
+              <Image src={event.eventImage || "/placeholder.svg"} alt={event.title} fill className="object-cover" priority />
               <div className="absolute left-4 top-4">
-                <Badge className="bg-primary/90 backdrop-blur-sm capitalize">{event.category}</Badge>
+                <Badge className="bg-primary/90 backdrop-blur-sm">{event.eventCategory}</Badge>
               </div>
-              {event.status !== "open" && (
+              {event.status !== "OPEN" && (
                 <div className="absolute right-4 top-4">
-                  <Badge variant="destructive" className="capitalize">
+                  <Badge variant="destructive">
                     {event.status}
                   </Badge>
                 </div>
               )}
             </div>
 
-            {/* Event Title & Quick Info */}
             <div>
-              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{event.name}</h1>
+              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{event.title}</h1>
               <div className="mt-4 flex flex-wrap gap-4 text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <Calendar className="h-5 w-5" />
@@ -161,25 +193,11 @@ export default function EventDetailPage() {
 
             <Separator />
 
-            {/* Participants */}
             <div>
               <h2 className="text-xl font-semibold mb-3">
                 Participants ({event.currentParticipants}/{event.maxParticipants})
               </h2>
               <div className="flex items-center gap-2">
-                <div className="flex -space-x-2">
-                  {event.participants.slice(0, 5).map((participant, i) => (
-                    <Avatar key={i} className="border-2 border-background h-10 w-10">
-                      <AvatarImage src={participant.avatar || "/placeholder.svg"} />
-                      <AvatarFallback>{participant.fullName.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                  ))}
-                  {event.currentParticipants > 5 && (
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-background bg-muted text-sm font-medium">
-                      +{event.currentParticipants - 5}
-                    </div>
-                  )}
-                </div>
                 <span className="text-sm text-muted-foreground">
                   {spotsLeft > 0 ? `${spotsLeft} spots left` : "No spots left"}
                 </span>
@@ -188,45 +206,12 @@ export default function EventDetailPage() {
 
             <Separator />
 
-            {/* Host Reviews */}
             <div>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold">Host Reviews</h2>
-                {hasAttended && <ReviewForm eventId={event.id} hostId={event.hostId} hostName={event.host.fullName} />}
-              </div>
-              {hostReviews.length > 0 ? (
-                <div className="space-y-4">
-                  {hostReviews.map((review) => (
-                    <GlowCard key={review.id} className="p-4">
-                      <div className="flex items-start gap-3">
-                        <Avatar>
-                          <AvatarImage src={review.user.avatar || "/placeholder.svg"} />
-                          <AvatarFallback>{review.user.fullName.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between">
-                            <span className="font-medium">{review.user.fullName}</span>
-                            <div className="flex items-center gap-1">
-                              {Array.from({ length: review.rating }).map((_, i) => (
-                                <Star key={i} className="h-4 w-4 fill-primary text-primary" />
-                              ))}
-                            </div>
-                          </div>
-                          <p className="mt-1 text-sm text-muted-foreground">{review.comment}</p>
-                          <p className="mt-2 text-xs text-muted-foreground">
-                            {new Date(review.createdAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                    </GlowCard>
-                  ))}
-                </div>
-              ) : (
-                <GlowCard className="text-center py-8">
-                  <Star className="h-10 w-10 text-muted-foreground/50 mx-auto mb-2" />
-                  <p className="text-muted-foreground">No reviews yet</p>
-                </GlowCard>
-              )}
+              <h2 className="text-xl font-semibold mb-4">Host Reviews</h2>
+              <GlowCard className="text-center py-8">
+                <Star className="h-10 w-10 text-muted-foreground/50 mx-auto mb-2" />
+                <p className="text-muted-foreground">No reviews yet</p>
+              </GlowCard>
             </div>
           </div>
 
@@ -238,19 +223,14 @@ export default function EventDetailPage() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      {event.fee > 0 ? (
+                      {event.joiningFee > 0 ? (
                         <div className="flex items-baseline gap-1">
-                          <span className="text-3xl font-bold">${event.fee}</span>
+                          <span className="text-3xl font-bold">${event.joiningFee}</span>
                           <span className="text-muted-foreground">/ person</span>
                         </div>
                       ) : (
                         <span className="text-3xl font-bold text-primary">Free</span>
                       )}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Star className="h-5 w-5 fill-primary text-primary" />
-                      <span className="font-semibold">{event.host.rating}</span>
-                      <span className="text-sm text-muted-foreground">({event.host.reviewCount})</span>
                     </div>
                   </div>
 
@@ -276,7 +256,7 @@ export default function EventDetailPage() {
                     </Button>
                   ) : (
                     <Button className="w-full" onClick={() => setIsJoinDialogOpen(true)}>
-                      Join Event {event.fee > 0 && `· $${event.fee}`}
+                      Join Event {event.joiningFee > 0 && `· $${event.joiningFee}`}
                     </Button>
                   )}
 
@@ -300,32 +280,18 @@ export default function EventDetailPage() {
                 </div>
               </GlowCard>
 
-              {/* Host Card */}
               <GlowCard>
                 <h3 className="font-semibold mb-4">Meet your host</h3>
-                <Link href={`/profile/${event.host.id}`} className="group">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-14 w-14">
-                      <AvatarImage src={event.host.avatar || "/placeholder.svg"} />
-                      <AvatarFallback>{event.host.fullName.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-medium group-hover:text-primary transition-colors">{event.host.fullName}</p>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Star className="h-4 w-4 fill-primary text-primary" />
-                        <span>{event.host.rating} rating</span>
-                        <span>·</span>
-                        <span>{event.host.reviewCount} reviews</span>
-                      </div>
-                    </div>
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-14 w-14">
+                    <AvatarImage src={event.user.profilePhoto || "/placeholder.svg"} />
+                    <AvatarFallback>{event.user.fullName.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium">{event.user.fullName}</p>
+                    <p className="text-sm text-muted-foreground">{event.user.email}</p>
                   </div>
-                </Link>
-                {event.host.bio && <p className="mt-3 text-sm text-muted-foreground line-clamp-3">{event.host.bio}</p>}
-                <Link href={`/profile/${event.host.id}`}>
-                  <Button variant="outline" className="w-full mt-4 bg-transparent">
-                    View Profile
-                  </Button>
-                </Link>
+                </div>
               </GlowCard>
             </div>
           </div>
@@ -337,12 +303,12 @@ export default function EventDetailPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Confirm your booking</DialogTitle>
-            <DialogDescription>You're about to join "{event.name}"</DialogDescription>
+            <DialogDescription>You're about to join "{event.title}"</DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-4">
             <div className="flex items-center justify-between text-sm">
               <span>Event fee</span>
-              <span className="font-medium">{event.fee > 0 ? `$${event.fee}` : "Free"}</span>
+              <span className="font-medium">{event.joiningFee > 0 ? `$${event.joiningFee}` : "Free"}</span>
             </div>
             <div className="flex items-center justify-between text-sm">
               <span>Date</span>
@@ -361,7 +327,7 @@ export default function EventDetailPage() {
             <Separator />
             <div className="flex items-center justify-between font-semibold">
               <span>Total</span>
-              <span>{event.fee > 0 ? `$${event.fee}` : "Free"}</span>
+              <span>{event.joiningFee > 0 ? `$${event.joiningFee}` : "Free"}</span>
             </div>
           </div>
           <DialogFooter>

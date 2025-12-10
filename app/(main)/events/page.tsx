@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useEffect } from "react"
 import { Search, MapPin, Calendar, SlidersHorizontal, X, Grid, List } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,9 +10,17 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { EventCard } from "@/components/event-card"
-import { mockEvents, eventCategories } from "@/lib/mock-data"
+import { eventApi } from "@/lib/eventApi"
+import type { Event } from "@/lib/types"
+import { toast } from "sonner"
+
+const eventCategories = [
+  "Technology", "Education", "Sports", "Music", "Art", "Food", "Business", "Health", "Travel", "Gaming"
+]
 
 export default function EventsPage() {
+  const [events, setEvents] = useState<Event[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [location, setLocation] = useState("")
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
@@ -20,53 +28,63 @@ export default function EventsPage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [priceFilter, setPriceFilter] = useState<"all" | "free" | "paid">("all")
 
-  const filteredEvents = useMemo(() => {
-    let events = [...mockEvents]
+  useEffect(() => {
+    fetchEvents()
+  }, [])
 
-    // Search filter
+  const fetchEvents = async () => {
+    setIsLoading(true)
+    try {
+      const response = await eventApi.getAllEvents()
+      if (response.success) {
+        setEvents(response.data || [])
+      }
+    } catch (error) {
+      toast.error("Failed to fetch events")
+    }
+    setIsLoading(false)
+  }
+
+  const filteredEvents = (() => {
+    let filteredEvents = [...events]
+
     if (searchQuery) {
-      events = events.filter(
+      filteredEvents = filteredEvents.filter(
         (e) =>
-          e.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          e.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
           e.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
           e.location.toLowerCase().includes(searchQuery.toLowerCase()),
       )
     }
 
-    // Location filter
     if (location) {
-      events = events.filter(
-        (e) =>
-          e.location.toLowerCase().includes(location.toLowerCase()) ||
-          e.address.toLowerCase().includes(location.toLowerCase()),
+      filteredEvents = filteredEvents.filter(
+        (e) => e.location.toLowerCase().includes(location.toLowerCase())
       )
     }
 
-    // Category filter
     if (selectedCategories.length > 0) {
-      events = events.filter((e) => selectedCategories.includes(e.category))
+      filteredEvents = filteredEvents.filter((e) => selectedCategories.includes(e.eventCategory))
     }
 
-    // Price filter
     if (priceFilter === "free") {
-      events = events.filter((e) => e.fee === 0)
+      filteredEvents = filteredEvents.filter((e) => e.joiningFee === 0)
     } else if (priceFilter === "paid") {
-      events = events.filter((e) => e.fee > 0)
+      filteredEvents = filteredEvents.filter((e) => e.joiningFee > 0)
     }
 
-    // Sort
     if (sortBy === "date") {
-      events.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      filteredEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     } else if (sortBy === "price-low") {
-      events.sort((a, b) => a.fee - b.fee)
+      filteredEvents.sort((a, b) => a.joiningFee - b.joiningFee)
     } else if (sortBy === "price-high") {
-      events.sort((a, b) => b.fee - a.fee)
+      filteredEvents.sort((a, b) => b.joiningFee - a.joiningFee)
     } else if (sortBy === "participants") {
-      events.sort((a, b) => b.currentParticipants - a.currentParticipants)
+      filteredEvents.sort((a, b) => b.currentParticipants - a.currentParticipants)
     }
 
-    return events
-  }, [searchQuery, location, selectedCategories, sortBy, priceFilter])
+    return filteredEvents
+  })()
 
   const toggleCategory = (category: string) => {
     setSelectedCategories((prev) =>
@@ -151,14 +169,14 @@ export default function EventsPage() {
                     <Label className="text-sm font-medium mb-3 block">Categories</Label>
                     <div className="space-y-2">
                       {eventCategories.map((category) => (
-                        <div key={category.value} className="flex items-center space-x-2">
+                        <div key={category} className="flex items-center space-x-2">
                           <Checkbox
-                            id={`mobile-${category.value}`}
-                            checked={selectedCategories.includes(category.value)}
-                            onCheckedChange={() => toggleCategory(category.value)}
+                            id={`mobile-${category}`}
+                            checked={selectedCategories.includes(category)}
+                            onCheckedChange={() => toggleCategory(category)}
                           />
-                          <Label htmlFor={`mobile-${category.value}`} className="text-sm font-normal">
-                            {category.label}
+                          <Label htmlFor={`mobile-${category}`} className="text-sm font-normal">
+                            {category}
                           </Label>
                         </div>
                       ))}
@@ -218,13 +236,13 @@ export default function EventsPage() {
           <div className="hidden sm:flex flex-wrap gap-2">
             {eventCategories.map((category) => (
               <Button
-                key={category.value}
-                variant={selectedCategories.includes(category.value) ? "default" : "outline"}
+                key={category}
+                variant={selectedCategories.includes(category) ? "default" : "outline"}
                 size="sm"
-                onClick={() => toggleCategory(category.value)}
+                onClick={() => toggleCategory(category)}
                 className="rounded-full"
               >
-                {category.label}
+                {category}
               </Button>
             ))}
             <Select value={priceFilter} onValueChange={(v) => setPriceFilter(v as typeof priceFilter)}>
@@ -287,7 +305,9 @@ export default function EventsPage() {
           <p className="text-sm text-muted-foreground">Showing {filteredEvents.length} events</p>
         </div>
 
-        {filteredEvents.length > 0 ? (
+        {isLoading ? (
+          <div className="text-center py-16">Loading events...</div>
+        ) : filteredEvents.length > 0 ? (
           <div
             className={viewMode === "grid" ? "grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" : "space-y-4"}
           >
