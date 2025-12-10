@@ -148,7 +148,7 @@ export function Navbar() {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link
-                      href={`/profile/${user.id}`}
+                      href={"/dashboard/profile/"}
                       className="flex items-center gap-2"
                     >
                       <User className="h-4 w-4" />

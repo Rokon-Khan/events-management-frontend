@@ -1,18 +1,8 @@
 export type UserRole = "USER" | "HOST" | "ADMIN";
 
-export type EventStatus = "open" | "full" | "cancelled" | "completed";
+export type EventStatus = "OPEN" | "FULL" | "UPCOMING" | "ONGOING" | "COMPLETED" | "CANCELLED" | "CLOSED" | "PENDING";
 
-export type EventCategory =
-  | "concert"
-  | "sports"
-  | "hiking"
-  | "gaming"
-  | "food"
-  | "art"
-  | "tech"
-  | "music"
-  | "wellness"
-  | "social";
+export type EventCategory = string;
 
 export interface User {
   id: string;
@@ -39,23 +29,27 @@ export interface User {
 
 export interface Event {
   id: string;
-  name: string;
+  title: string;
   description: string;
-  category: EventCategory;
+  eventImage: string;
+  eventCategory: EventCategory;
   date: string;
   time: string;
   location: string;
-  address: string;
-  image: string;
-  hostId: string;
-  host: User;
   minParticipants: number;
   maxParticipants: number;
   currentParticipants: number;
-  participants: User[];
-  fee: number;
+  joiningFee: number;
   status: EventStatus;
   createdAt: string;
+  updatedAt: string;
+  userId: string;
+  user: {
+    id: string;
+    fullName: string;
+    email: string;
+    profilePhoto?: string;
+  };
 }
 
 export interface Review {

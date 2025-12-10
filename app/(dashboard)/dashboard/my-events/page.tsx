@@ -24,7 +24,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/lib/auth-context";
-import { mockEvents } from "@/lib/mock-data";
+import { eventApi } from "@/lib/eventApi";
+import type { Event } from "@/lib/types";
 import {
   Calendar,
   Edit,
@@ -36,32 +37,63 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 export default function MyEventsPage() {
   const { user } = useAuth();
+  const [events, setEvents] = useState<Event[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteEventId, setDeleteEventId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const isHost = user?.role === "HOST" || user?.role === "ADMIN";
 
-  const myEvents = isHost
-    ? mockEvents.filter((e) => e.hostId === user?.id)
-    : mockEvents.filter((e) => e.participants.some((p) => p.id === user?.id));
+  useEffect(() => {
+    fetchMyEvents();
+  }, [user]);
 
-  const upcomingEvents = myEvents.filter((e) => new Date(e.date) > new Date());
-  const pastEvents = myEvents.filter((e) => new Date(e.date) <= new Date());
+  const fetchMyEvents = async () => {
+    if (!user) return;
+    setIsLoading(true);
+    try {
+      const response = await eventApi.getAllEvents();
+      if (response.success) {
+        const allEvents = response.data || [];
+        const myEvents = isHost
+          ? allEvents.filter((e: Event) => e.userId === user.id)
+          : allEvents; // For users, we'd need a separate API for joined events
+        setEvents(myEvents);
+      }
+    } catch (error) {
+      toast.error("Failed to fetch events");
+    }
+    setIsLoading(false);
+  };
+
+  const upcomingEvents = events.filter((e) => new Date(e.date) > new Date());
+  const pastEvents = events.filter((e) => new Date(e.date) <= new Date());
 
   const filteredUpcoming = upcomingEvents.filter((e) =>
-    e.name.toLowerCase().includes(searchQuery.toLowerCase())
+    e.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
   const filteredPast = pastEvents.filter((e) =>
-    e.name.toLowerCase().includes(searchQuery.toLowerCase())
+    e.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleDelete = () => {
-    toast.success("Event deleted successfully");
+  const handleDelete = async () => {
+    if (!deleteEventId) return;
+    try {
+      const response = await eventApi.deleteEvent(deleteEventId);
+      if (response.success) {
+        toast.success("Event deleted successfully");
+        fetchMyEvents();
+      } else {
+        toast.error(response.message || "Failed to delete event");
+      }
+    } catch (error) {
+      toast.error("Network error");
+    }
     setDeleteEventId(null);
   };
 
@@ -112,7 +144,9 @@ export default function MyEventsPage() {
         </TabsList>
 
         <TabsContent value="upcoming" className="mt-6">
-          {filteredUpcoming.length > 0 ? (
+          {isLoading ? (
+            <div className="text-center py-8 text-muted-foreground">Loading...</div>
+          ) : filteredUpcoming.length > 0 ? (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {filteredUpcoming.map((event) => (
                 <div key={event.id} className="relative group">
@@ -186,7 +220,9 @@ export default function MyEventsPage() {
         </TabsContent>
 
         <TabsContent value="past" className="mt-6">
-          {filteredPast.length > 0 ? (
+          {isLoading ? (
+            <div className="text-center py-8 text-muted-foreground">Loading...</div>
+          ) : filteredPast.length > 0 ? (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {filteredPast.map((event) => (
                 <div key={event.id} className="opacity-75">
