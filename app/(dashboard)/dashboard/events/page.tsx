@@ -12,6 +12,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -26,14 +34,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
 import { useAuth } from "@/lib/auth-context";
 import { eventApi } from "@/lib/eventApi";
 import type { Event } from "@/lib/types";
@@ -49,7 +49,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function ManageEventsPage() {
@@ -208,7 +208,13 @@ export default function ManageEventsPage() {
             }}
           />
         </div>
-        <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1); }}>
+        <Select
+          value={statusFilter}
+          onValueChange={(v) => {
+            setStatusFilter(v);
+            setPage(1);
+          }}
+        >
           <SelectTrigger className="w-40">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
@@ -242,13 +248,19 @@ export default function ManageEventsPage() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell
+                    colSpan={7}
+                    className="text-center py-8 text-muted-foreground"
+                  >
                     Loading...
                   </TableCell>
                 </TableRow>
               ) : events.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell
+                    colSpan={7}
+                    className="text-center py-8 text-muted-foreground"
+                  >
                     No events found
                   </TableCell>
                 </TableRow>
@@ -267,7 +279,9 @@ export default function ManageEventsPage() {
                           />
                         </div>
                         <div>
-                          <p className="font-medium line-clamp-1">{event.title}</p>
+                          <p className="font-medium line-clamp-1">
+                            {event.title}
+                          </p>
                           <p className="text-sm text-muted-foreground">
                             {event.eventCategory}
                           </p>
@@ -289,7 +303,8 @@ export default function ManageEventsPage() {
                     <TableCell>
                       <Badge
                         className={`border ${
-                          statusColors[event.status] || "bg-gray-500/10 text-gray-500 border-gray-500/20"
+                          statusColors[event.status] ||
+                          "bg-gray-500/10 text-gray-500 border-gray-500/20"
                         }`}
                       >
                         {event.status}
@@ -312,10 +327,11 @@ export default function ManageEventsPage() {
                               View Event
                             </Link>
                           </DropdownMenuItem>
-                          {(currentUser?.id === event.userId || currentUser?.role === "ADMIN") && (
+                          {(currentUser?.id === event.userId ||
+                            currentUser?.role === "ADMIN") && (
                             <DropdownMenuItem asChild>
                               <Link
-                                href={`/events/edit/${event.id}`}
+                                href={`/dashboard/events/edit/${event.id}`}
                                 className="flex items-center gap-2"
                               >
                                 <Edit className="h-4 w-4" />
@@ -329,7 +345,9 @@ export default function ManageEventsPage() {
                               {event.status === "PENDING" && (
                                 <DropdownMenuItem
                                   className="flex items-center gap-2"
-                                  onClick={() => handleStatusUpdate(event.id, "ONGOING")}
+                                  onClick={() =>
+                                    handleStatusUpdate(event.id, "ONGOING")
+                                  }
                                 >
                                   <CheckCircle className="h-4 w-4" />
                                   Approve
@@ -337,7 +355,9 @@ export default function ManageEventsPage() {
                               )}
                               <DropdownMenuItem
                                 className="text-destructive focus:text-destructive flex items-center gap-2"
-                                onClick={() => handleStatusUpdate(event.id, "CANCELLED")}
+                                onClick={() =>
+                                  handleStatusUpdate(event.id, "CANCELLED")
+                                }
                               >
                                 <XCircle className="h-4 w-4" />
                                 Cancel Event
@@ -361,11 +381,18 @@ export default function ManageEventsPage() {
           <PaginationContent>
             <PaginationItem>
               <PaginationPrevious
-                onClick={() => setPage(p => Math.max(1, p - 1))}
-                className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                className={
+                  page === 1
+                    ? "pointer-events-none opacity-50"
+                    : "cursor-pointer"
+                }
               />
             </PaginationItem>
-            {Array.from({ length: Math.ceil(meta.total / meta.limit) }, (_, i) => i + 1).map((p) => (
+            {Array.from(
+              { length: Math.ceil(meta.total / meta.limit) },
+              (_, i) => i + 1
+            ).map((p) => (
               <PaginationItem key={p}>
                 <PaginationLink
                   onClick={() => setPage(p)}
@@ -378,8 +405,16 @@ export default function ManageEventsPage() {
             ))}
             <PaginationItem>
               <PaginationNext
-                onClick={() => setPage(p => Math.min(Math.ceil(meta.total / meta.limit), p + 1))}
-                className={page === Math.ceil(meta.total / meta.limit) ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                onClick={() =>
+                  setPage((p) =>
+                    Math.min(Math.ceil(meta.total / meta.limit), p + 1)
+                  )
+                }
+                className={
+                  page === Math.ceil(meta.total / meta.limit)
+                    ? "pointer-events-none opacity-50"
+                    : "cursor-pointer"
+                }
               />
             </PaginationItem>
           </PaginationContent>

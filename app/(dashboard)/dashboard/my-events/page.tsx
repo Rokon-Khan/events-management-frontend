@@ -37,7 +37,7 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function MyEventsPage() {
@@ -145,7 +145,9 @@ export default function MyEventsPage() {
 
         <TabsContent value="upcoming" className="mt-6">
           {isLoading ? (
-            <div className="text-center py-8 text-muted-foreground">Loading...</div>
+            <div className="text-center py-8 text-muted-foreground">
+              Loading...
+            </div>
           ) : filteredUpcoming.length > 0 ? (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {filteredUpcoming.map((event) => (
@@ -175,7 +177,7 @@ export default function MyEventsPage() {
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild>
                             <Link
-                              href={`/events/edit/${event.id}`}
+                              href={`/dashboard/events/edit/${event.id}`}
                               className="flex items-center gap-2"
                             >
                               <Edit className="h-4 w-4" />
@@ -221,7 +223,9 @@ export default function MyEventsPage() {
 
         <TabsContent value="past" className="mt-6">
           {isLoading ? (
-            <div className="text-center py-8 text-muted-foreground">Loading...</div>
+            <div className="text-center py-8 text-muted-foreground">
+              Loading...
+            </div>
           ) : filteredPast.length > 0 ? (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {filteredPast.map((event) => (

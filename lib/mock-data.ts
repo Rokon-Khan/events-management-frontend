@@ -1,4 +1,4 @@
-import type { User, Event, Review, Booking, EventCategory } from "./types"
+import type { Booking, Event, EventCategory, Review, User } from "./types";
 
 export const mockUsers: User[] = [
   {
@@ -66,7 +66,7 @@ export const mockUsers: User[] = [
     rating: 5,
     reviewCount: 0,
   },
-]
+];
 
 export const mockEvents: Event[] = [
   {
@@ -218,7 +218,7 @@ export const mockEvents: Event[] = [
   },
   {
     id: "event_8",
-    name: "Basketball Pickup Game",
+    title: "Basketball Pickup Game",
     description:
       "Weekly basketball pickup games for all skill levels. Come for the exercise, stay for the community. Beginners and experienced players welcome!",
     category: "sports",
@@ -234,10 +234,10 @@ export const mockEvents: Event[] = [
     currentParticipants: 16,
     participants: [mockUsers[0]],
     fee: 0,
-    status: "open",
+    status: "OPEN",
     createdAt: "2024-12-20T10:00:00Z",
   },
-]
+];
 
 export const mockReviews: Review[] = [
   {
@@ -273,7 +273,7 @@ export const mockReviews: Review[] = [
       "The jazz night was phenomenal. Sarah picked the perfect venue and the live music was incredible. Highly recommend!",
     createdAt: "2024-12-01T10:00:00Z",
   },
-]
+];
 
 export const mockBookings: Booking[] = [
   {
@@ -296,9 +296,13 @@ export const mockBookings: Booking[] = [
     paidAmount: 35,
     bookedAt: "2024-12-10T10:00:00Z",
   },
-]
+];
 
-export const eventCategories: { value: EventCategory; label: string; icon: string }[] = [
+export const eventCategories: {
+  value: EventCategory;
+  label: string;
+  icon: string;
+}[] = [
   { value: "concert", label: "Concerts", icon: "Music" },
   { value: "sports", label: "Sports", icon: "Trophy" },
   { value: "hiking", label: "Hiking", icon: "Mountain" },
@@ -309,13 +313,16 @@ export const eventCategories: { value: EventCategory; label: string; icon: strin
   { value: "music", label: "Music", icon: "Headphones" },
   { value: "wellness", label: "Wellness", icon: "Heart" },
   { value: "social", label: "Social", icon: "Users" },
-]
+];
 
 export const interestOptions = [
   "Music",
   "Sports",
   "Hiking",
   "Photography",
+  "Painting",
+  "Cycling",
+  "Programming",
   "Travel",
   "Gaming",
   "Technology",
@@ -332,8 +339,7 @@ export const interestOptions = [
   "Networking",
   "Meditation",
   "Coffee",
-  "Wine",
   "Theater",
   "Comedy",
   "Volunteering",
-]
+];

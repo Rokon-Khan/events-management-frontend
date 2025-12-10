@@ -13,7 +13,8 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/auth-context";
-import { eventCategories, mockEvents } from "@/lib/mock-data";
+import { eventApi } from "@/lib/eventApi";
+import type { Event } from "@/lib/types";
 import {
   AlertCircle,
   ArrowLeft,
@@ -30,45 +31,113 @@ import type React from "react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+const eventCategories = [
+  "Technology",
+  "Education",
+  "Sports",
+  "Music",
+  "Art",
+  "Food",
+  "Business",
+  "Health",
+  "Travel",
+  "Gaming",
+];
+
+// Helper function to format date for input
+const formatDateForInput = (dateString: string) => {
+  if (!dateString) return "";
+
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "";
+
+    // Format as YYYY-MM-DD for input[type="date"]
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+  } catch (error) {
+    console.error("Error formatting date:", error);
+    return "";
+  }
+};
+
 export default function EditEventPage() {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
+  const [event, setEvent] = useState<Event | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-  const event = mockEvents.find((e) => e.id === params.id);
-
   const [formData, setFormData] = useState({
-    name: "",
+    title: "",
     description: "",
-    category: "",
+    eventCategory: "",
     date: "",
     time: "",
     location: "",
-    address: "",
     minParticipants: "2",
     maxParticipants: "10",
-    fee: "0",
+    joiningFee: "0",
+    status: "",
   });
 
   useEffect(() => {
+    fetchEvent();
+  }, [params.id]);
+
+  useEffect(() => {
     if (event) {
+      console.log("Setting form data from event:", event);
+
       setFormData({
-        name: event.name,
-        description: event.description,
-        category: event.category,
-        date: event.date,
-        time: event.time,
-        location: event.location,
-        address: event.address,
-        minParticipants: String(event.minParticipants),
-        maxParticipants: String(event.maxParticipants),
-        fee: String(event.fee),
+        title: event.title || "",
+        description: event.description || "",
+        eventCategory: event.eventCategory || "",
+        date: formatDateForInput(event.date),
+        time: event.time || "",
+        location: event.location || "",
+        minParticipants: String(event.minParticipants || 2),
+        maxParticipants: String(event.maxParticipants || 10),
+        joiningFee: String(event.joiningFee || 0),
+        status: event.status || "PENDING",
       });
-      setImagePreview(event.image);
+
+      setImagePreview(event.eventImage || null);
     }
   }, [event]);
+
+  const fetchEvent = async () => {
+    try {
+      setIsLoading(true);
+      const response = await eventApi.getEventById(params.id as string);
+      console.log("API Response:", response);
+
+      if (response.success && response.data) {
+        setEvent(response.data);
+      } else {
+        toast.error("Event not found");
+        router.push("/dashboard/my-events");
+      }
+    } catch (error) {
+      console.error("Error fetching event:", error);
+      toast.error("Failed to load event");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center">
+        <div className="text-center">Loading...</div>
+      </div>
+    );
+  }
 
   if (!event) {
     return (
@@ -88,7 +157,7 @@ export default function EditEventPage() {
     );
   }
 
-  if (user?.id !== event.hostId && user?.role !== "ADMIN") {
+  if (user?.id !== event.userId && user?.role !== "ADMIN") {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center">
         <AlertCircle className="h-16 w-16 text-muted-foreground/50 mb-4" />
@@ -117,10 +186,37 @@ export default function EditEventPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    await new Promise((r) => setTimeout(r, 2000));
-    setIsSubmitting(false);
-    toast.success("Event updated successfully!");
-    router.push(`/events/${event.id}`);
+
+    try {
+      const formDataToSend = new FormData();
+
+      // Add all form fields
+      Object.entries(formData).forEach(([key, value]) => {
+        formDataToSend.append(key, value);
+      });
+
+      // Handle image upload
+      const fileInput = document.querySelector(
+        'input[type="file"]'
+      ) as HTMLInputElement;
+      if (fileInput?.files?.[0]) {
+        formDataToSend.append("eventImage", fileInput.files[0]);
+      }
+
+      const response = await eventApi.updateEvent(event.id, formDataToSend);
+
+      if (response.success) {
+        toast.success("Event updated successfully!");
+        router.push(`/events/${event.id}`);
+      } else {
+        toast.error(response.message || "Failed to update event");
+      }
+    } catch (error) {
+      console.error("Error updating event:", error);
+      toast.error("Network error. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -155,10 +251,11 @@ export default function EditEventPage() {
               {imagePreview ? (
                 <div className="relative aspect-[16/9] overflow-hidden rounded-xl">
                   <Image
-                    src={imagePreview || "/placeholder.svg"}
+                    src={imagePreview}
                     alt="Event preview"
                     fill
                     className="object-cover"
+                    priority
                   />
                   <label className="cursor-pointer">
                     <Button
@@ -203,13 +300,13 @@ export default function EditEventPage() {
             <Label className="text-base font-semibold">Basic Information</Label>
             <div className="mt-4 space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Event Name *</Label>
+                <Label htmlFor="title">Event Title *</Label>
                 <Input
-                  id="name"
-                  placeholder="Give your event a catchy name"
-                  value={formData.name}
+                  id="title"
+                  placeholder="Give your event a catchy title"
+                  value={formData.title}
                   onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
+                    setFormData({ ...formData, title: e.target.value })
                   }
                   required
                 />
@@ -230,11 +327,11 @@ export default function EditEventPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="category">Category *</Label>
+                <Label htmlFor="eventCategory">Category *</Label>
                 <Select
-                  value={formData.category}
+                  value={formData.eventCategory}
                   onValueChange={(value) =>
-                    setFormData({ ...formData, category: value })
+                    setFormData({ ...formData, eventCategory: value })
                   }
                 >
                   <SelectTrigger>
@@ -242,13 +339,36 @@ export default function EditEventPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {eventCategories.map((cat) => (
-                      <SelectItem key={cat.value} value={cat.value}>
-                        {cat.label}
+                      <SelectItem key={cat} value={cat}>
+                        {cat}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
+
+              {user?.role === "ADMIN" && (
+                <div className="space-y-2">
+                  <Label htmlFor="status">Status</Label>
+                  <Select
+                    value={formData.status}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, status: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="PENDING">Pending</SelectItem>
+                      <SelectItem value="OPEN">Open</SelectItem>
+                      <SelectItem value="ONGOING">Ongoing</SelectItem>
+                      <SelectItem value="COMPLETED">Completed</SelectItem>
+                      <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
           </GlowCard>
 
@@ -279,7 +399,7 @@ export default function EditEventPage() {
                   <Clock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     id="time"
-                    type="time"
+                    placeholder="e.g., 7:00 PM"
                     className="pl-10"
                     value={formData.time}
                     onChange={(e) =>
@@ -292,35 +412,19 @@ export default function EditEventPage() {
             </div>
           </GlowCard>
 
-          {/* Location */}
           <GlowCard>
             <Label className="text-base font-semibold">Location</Label>
-            <div className="mt-4 space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="location">Venue Name *</Label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="location"
-                    placeholder="e.g., Central Park"
-                    className="pl-10"
-                    value={formData.location}
-                    onChange={(e) =>
-                      setFormData({ ...formData, location: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="address">Full Address *</Label>
+            <div className="mt-4 space-y-2">
+              <Label htmlFor="location">Venue *</Label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  id="address"
-                  placeholder="Street address, city, state, zip"
-                  value={formData.address}
+                  id="location"
+                  placeholder="Enter venue name or address"
+                  className="pl-10"
+                  value={formData.location}
                   onChange={(e) =>
-                    setFormData({ ...formData, address: e.target.value })
+                    setFormData({ ...formData, location: e.target.value })
                   }
                   required
                 />
@@ -328,14 +432,13 @@ export default function EditEventPage() {
             </div>
           </GlowCard>
 
-          {/* Participants & Price */}
           <GlowCard>
             <Label className="text-base font-semibold">
               Participants & Pricing
             </Label>
-            <div className="mt-4 grid gap-4 sm:grid-cols-3">
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="minParticipants">Min Participants</Label>
+                <Label htmlFor="minParticipants">Min Participants *</Label>
                 <div className="relative">
                   <Users className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -350,12 +453,13 @@ export default function EditEventPage() {
                         minParticipants: e.target.value,
                       })
                     }
+                    required
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="maxParticipants">Max Participants</Label>
+                <Label htmlFor="maxParticipants">Max Participants *</Label>
                 <div className="relative">
                   <Users className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -370,23 +474,24 @@ export default function EditEventPage() {
                         maxParticipants: e.target.value,
                       })
                     }
+                    required
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="fee">Joining Fee ($)</Label>
+                <Label htmlFor="joiningFee">Joining Fee ($)</Label>
                 <div className="relative">
                   <DollarSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
-                    id="fee"
+                    id="joiningFee"
                     type="number"
                     min="0"
                     step="0.01"
                     className="pl-10"
-                    value={formData.fee}
+                    value={formData.joiningFee}
                     onChange={(e) =>
-                      setFormData({ ...formData, fee: e.target.value })
+                      setFormData({ ...formData, joiningFee: e.target.value })
                     }
                   />
                 </div>
@@ -394,7 +499,6 @@ export default function EditEventPage() {
             </div>
           </GlowCard>
 
-          {/* Submit */}
           <div className="flex gap-4">
             <Button
               type="button"
@@ -405,7 +509,7 @@ export default function EditEventPage() {
               Cancel
             </Button>
             <Button type="submit" className="flex-1" disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : "Save Changes"}
+              {isSubmitting ? "Updating..." : "Update Event"}
             </Button>
           </div>
         </form>
