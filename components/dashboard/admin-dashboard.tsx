@@ -5,7 +5,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { mockEvents, mockUsers } from "@/lib/mock-data";
+import { eventApi } from "@/lib/eventApi";
+import { reportsApi } from "@/lib/reportsApi";
+import type { Event, User } from "@/lib/types";
+import { userApi } from "@/lib/userApi";
 import {
   AlertTriangle,
   ArrowRight,
@@ -16,51 +19,97 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 export function AdminDashboard() {
-  const totalUsers = mockUsers.filter((u) => u.role === "USER").length;
-  const totalHosts = mockUsers.filter((u) => u.role === "HOST").length;
-  const totalEvents = mockEvents.length;
-  const totalRevenue = mockEvents.reduce(
-    (acc, e) => acc + e.fee * e.currentParticipants,
-    0
-  );
+  const [dashboardStats, setDashboardStats] = useState({
+    totalUsers: 0,
+    totalHosts: 0,
+    totalEvents: 0,
+    totalRevenue: 0,
+  });
+  const [recentUsers, setRecentUsers] = useState<User[]>([]);
+  const [recentEvents, setRecentEvents] = useState<Event[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      const [statsResponse, usersResponse, eventsResponse] = await Promise.all([
+        reportsApi.getAdminDashboardStats(),
+        userApi.getAllUsers({ page: 1, limit: 6 }),
+        eventApi.getAllEvents({ page: 1, limit: 6 }),
+      ]);
+
+      if (statsResponse.success) {
+        setDashboardStats(statsResponse.data);
+      }
+
+      if (usersResponse.success) {
+        setRecentUsers(usersResponse.data || []);
+      }
+
+      if (eventsResponse.success) {
+        setRecentEvents(eventsResponse.data || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch dashboard data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const stats = [
     {
       label: "Total Users",
-      value: totalUsers,
+      value: dashboardStats.totalUsers,
       icon: Users,
       change: "+12%",
       color: "text-blue-500",
     },
     {
       label: "Total Hosts",
-      value: totalHosts,
+      value: dashboardStats.totalHosts,
       icon: Shield,
       change: "+8%",
       color: "text-green-500",
     },
     {
       label: "Total Events",
-      value: totalEvents,
+      value: dashboardStats.totalEvents,
       icon: Calendar,
       change: "+24%",
       color: "text-purple-500",
     },
     {
       label: "Platform Revenue",
-      value: `$${totalRevenue}`,
+      value: `$${dashboardStats.totalRevenue}`,
       icon: DollarSign,
       change: "+18%",
       color: "text-amber-500",
     },
   ];
 
-  const recentUsers = mockUsers.slice(0, 5);
-  const pendingEvents = mockEvents
-    .filter((e) => e.status === "open")
-    .slice(0, 5);
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <GlowCard key={i} className="p-5">
+              <div className="animate-pulse space-y-3">
+                <div className="h-10 w-10 bg-muted rounded-lg" />
+                <div className="h-6 w-16 bg-muted rounded" />
+                <div className="h-4 w-20 bg-muted rounded" />
+              </div>
+            </GlowCard>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -143,8 +192,12 @@ export function AdminDashboard() {
               >
                 <div className="flex items-center gap-3">
                   <Avatar className="h-9 w-9">
-                    <AvatarImage src={user.avatar || "/placeholder.svg"} />
-                    <AvatarFallback>{user.fullName.charAt(0)}</AvatarFallback>
+                    <AvatarImage
+                      src={user.profilePhoto || "/placeholder.svg"}
+                    />
+                    <AvatarFallback>
+                      {user.fullName?.charAt(0) || "U"}
+                    </AvatarFallback>
                   </Avatar>
                   <div>
                     <p className="font-medium text-sm">{user.fullName}</p>
@@ -181,15 +234,23 @@ export function AdminDashboard() {
             </Link>
           </div>
           <div className="space-y-3">
-            {pendingEvents.map((event) => (
+            {recentEvents.map((event) => (
               <div
                 key={event.id}
-                className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
+                className="flex items-center justify-between p-3 gap-3 rounded-lg bg-muted/50"
               >
+                <Avatar className="h-9 w-9">
+                  <AvatarImage
+                    src={event.user?.profilePhoto || "/placeholder.svg"}
+                  />
+                  <AvatarFallback>
+                    {event.user?.fullName?.charAt(0) || "U"}
+                  </AvatarFallback>
+                </Avatar>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm truncate">{event.name}</p>
+                  <p className="font-medium text-sm truncate">{event.title}</p>
                   <p className="text-xs text-muted-foreground">
-                    by {event.host.fullName} ·{" "}
+                    by {event.user?.fullName || "Unknown"} ·{" "}
                     {new Date(event.date).toLocaleDateString()}
                   </p>
                 </div>
