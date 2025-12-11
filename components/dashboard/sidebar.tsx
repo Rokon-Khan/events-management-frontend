@@ -36,6 +36,7 @@ import {
   Shield,
   Sparkles,
   Star,
+  UserCheck2,
   UserCog,
   Users,
 } from "lucide-react";
@@ -67,6 +68,11 @@ export function DashboardSidebar() {
     { title: "Overview", href: "/dashboard", icon: LayoutDashboard },
     { title: "Manage Users", href: "/dashboard/users", icon: UserCog },
     { title: "Manage Hosts", href: "/dashboard/hosts", icon: Shield },
+    {
+      title: "Become Hosts Requests",
+      href: "/dashboard/become-hosts",
+      icon: UserCheck2,
+    },
     { title: "Manage Events", href: "/dashboard/events", icon: Calendar },
     { title: "Reviews", href: "/dashboard/reviews", icon: Star },
     { title: "Revenue", href: "/dashboard/revenue", icon: CreditCard },

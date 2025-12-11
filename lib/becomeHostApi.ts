@@ -64,7 +64,7 @@ export const becomeHostApi = {
   },
 
   // Update become host request (ADMIN only)
-  updateBecomeHostRequest: async (id: string, updateData: { status?: string; adminNotes?: string }) => {
+  updateBecomeHostRequest: async (id: string, updateData: { status?: string; adminNotes?: string; approveHost?: boolean }) => {
     const response = await fetch(`${API_BASE_URL}/become-host/${id}`, {
       method: "PATCH",
       credentials: "include",
