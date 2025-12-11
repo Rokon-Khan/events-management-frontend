@@ -22,7 +22,8 @@ export const userApi = {
     if (params?.page) queryParams.append("page", params.page.toString());
     if (params?.limit) queryParams.append("limit", params.limit.toString());
     if (params?.searchTerm) queryParams.append("searchTerm", params.searchTerm);
-    if (params?.role && params.role !== "all") queryParams.append("role", params.role);
+    if (params?.role && params.role !== "all")
+      queryParams.append("role", params.role);
 
     const response = await fetch(`${API_BASE_URL}/user?${queryParams}`, {
       credentials: "include",
@@ -56,16 +57,28 @@ export const userApi = {
     return response.json();
   },
 
-  async getAllUsers(params?: URLSearchParams): Promise<ApiResponse> {
-    const url = params ? `${API_BASE_URL}/user?${params.toString()}` : `${API_BASE_URL}/user`;
-    const response = await fetch(url, {
-      credentials: "include",
-    });
+  // async getAllUsers(params?: URLSearchParams): Promise<ApiResponse> {
+  //   const url = params ? `${API_BASE_URL}/user?${params.toString()}` : `${API_BASE_URL}/user`;
+  //   const response = await fetch(url, {
+  //     credentials: "include",
+  //   });
+  //   return response.json();
+  // },
+
+  async getPublicProfile(userId: string): Promise<ApiResponse> {
+    const response = await fetch(
+      `${API_BASE_URL}/user/public-profile/${userId}`,
+      {
+        credentials: "include",
+      }
+    );
     return response.json();
   },
 
   async getHosts(params?: URLSearchParams): Promise<ApiResponse> {
-    const url = params ? `${API_BASE_URL}/user/hosts?${params.toString()}` : `${API_BASE_URL}/user/hosts`;
+    const url = params
+      ? `${API_BASE_URL}/user/hosts?${params.toString()}`
+      : `${API_BASE_URL}/user/hosts`;
     const response = await fetch(url, {
       credentials: "include",
     });

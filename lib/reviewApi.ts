@@ -15,8 +15,9 @@ export const reviewApi = {
   },
 
   // Get all reviews
-  getAllReviews: async () => {
-    const response = await fetch(`${API_BASE_URL}/reviews`, {
+  getAllReviews: async (params?: URLSearchParams) => {
+    const url = params ? `${API_BASE_URL}/review?${params.toString()}` : `${API_BASE_URL}/review`;
+    const response = await fetch(url, {
       method: "GET",
       credentials: "include",
     });

@@ -18,8 +18,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { useAuth } from "@/lib/auth-context";
-import { mockEvents, mockReviews } from "@/lib/mock-data";
+import { reviewApi } from "@/lib/reviewApi";
+import type { Review } from "@/lib/types";
 import {
   CheckCircle,
   Eye,
@@ -30,28 +39,65 @@ import {
   Trash2,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 export default function ReviewsPage() {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [ratingFilter, setRatingFilter] = useState<string>("all");
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [meta, setMeta] = useState({ total: 0, page: 1, limit: 10 });
 
   const isAdmin = user?.role === "ADMIN";
 
-  const reviews = isAdmin
-    ? mockReviews
-    : mockReviews.filter((r) => r.hostId === user?.id || r.userId === user?.id);
+  useEffect(() => {
+    fetchReviews();
+  }, [page, searchQuery, ratingFilter]);
 
-  const filteredReviews = reviews.filter((review) => {
-    const matchesSearch =
-      review.comment.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      review.user.fullName.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesRating =
-      ratingFilter === "all" || review.rating === Number.parseInt(ratingFilter);
-    return matchesSearch && matchesRating;
-  });
+  const fetchReviews = async () => {
+    setIsLoading(true);
+    try {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: "10",
+      });
+      
+      if (searchQuery) {
+        params.append("searchTerm", searchQuery);
+      }
+      
+      if (ratingFilter !== "all") {
+        params.append("rating", ratingFilter);
+      }
+
+      const response = await reviewApi.getAllReviews(params);
+      if (response.success) {
+        setReviews(response.data || []);
+        setMeta(response.meta || { total: 0, page: 1, limit: 10 });
+      }
+    } catch (error) {
+      toast.error("Failed to fetch reviews");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteReview = async (reviewId: string) => {
+    try {
+      const response = await reviewApi.deleteReview(reviewId);
+      if (response.success) {
+        toast.success("Review deleted successfully");
+        fetchReviews();
+      } else {
+        toast.error(response.message || "Failed to delete review");
+      }
+    } catch (error) {
+      toast.error("Network error. Please try again.");
+    }
+  };
 
   const avgRating =
     reviews.length > 0
@@ -128,10 +174,16 @@ export default function ReviewsPage() {
             placeholder="Search reviews..."
             className="pl-10"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value)
+              setPage(1)
+            }}
           />
         </div>
-        <Select value={ratingFilter} onValueChange={setRatingFilter}>
+        <Select value={ratingFilter} onValueChange={(v) => {
+          setRatingFilter(v)
+          setPage(1)
+        }}>
           <SelectTrigger className="w-40">
             <SelectValue placeholder="Filter by rating" />
           </SelectTrigger>
@@ -148,35 +200,35 @@ export default function ReviewsPage() {
 
       {/* Reviews List */}
       <div className="space-y-4">
-        {filteredReviews.length > 0 ? (
-          filteredReviews.map((review) => {
-            const event = mockEvents.find((e) => e.id === review.eventId);
-            return (
-              <GlowCard key={review.id}>
+        {isLoading ? (
+          <GlowCard className="text-center py-12">
+            <p>Loading reviews...</p>
+          </GlowCard>
+        ) : reviews.length > 0 ? (
+          reviews.map((review) => (
+            <GlowCard key={review.id}>
                 <div className="flex flex-col sm:flex-row sm:items-start gap-4">
                   <Avatar className="h-10 w-10">
                     <AvatarImage
-                      src={review.user.avatar || "/placeholder.svg"}
+                      src={review.user?.profilePhoto || "/placeholder.svg"}
                     />
                     <AvatarFallback>
-                      {review.user.fullName.charAt(0)}
+                      {review.user?.fullName?.charAt(0) || 'U'}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                       <div>
                         <Link
-                          href={`/profile/${review.user.id}`}
+                          href={`/profile/${review.user?.id}`}
                           className="font-medium hover:text-primary"
                         >
-                          {review.user.fullName}
+                          {review.user?.fullName || 'Unknown User'}
                         </Link>
-                        {event && (
-                          <span className="text-sm text-muted-foreground">
-                            {" "}
-                            on {event.name}
-                          </span>
-                        )}
+                        <span className="text-sm text-muted-foreground">
+                          {" "}
+                          Event ID: {review.eventId}
+                        </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="flex items-center gap-0.5">
@@ -204,7 +256,7 @@ export default function ReviewsPage() {
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem asChild>
                               <Link
-                                href={`/profile/${review.user.id}`}
+                                href={`/profile/${review.user?.id}`}
                                 className="flex items-center gap-2"
                               >
                                 <Eye className="h-4 w-4" />
@@ -220,9 +272,7 @@ export default function ReviewsPage() {
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
                                   className="text-destructive focus:text-destructive flex items-center gap-2"
-                                  onClick={() =>
-                                    toast.success("Review removed")
-                                  }
+                                  onClick={() => handleDeleteReview(review.id)}
                                 >
                                   <Trash2 className="h-4 w-4" />
                                   Remove Review
@@ -253,8 +303,7 @@ export default function ReviewsPage() {
                   </div>
                 </div>
               </GlowCard>
-            );
-          })
+            ))
         ) : (
           <GlowCard className="text-center py-12">
             <Star className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
@@ -267,6 +316,37 @@ export default function ReviewsPage() {
           </GlowCard>
         )}
       </div>
+
+      {/* Pagination */}
+      {meta.total > meta.limit && (
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              />
+            </PaginationItem>
+            {Array.from({ length: Math.ceil(meta.total / meta.limit) }, (_, i) => i + 1).map(p => (
+              <PaginationItem key={p}>
+                <PaginationLink
+                  onClick={() => setPage(p)}
+                  isActive={page === p}
+                  className="cursor-pointer"
+                >
+                  {p}
+                </PaginationLink>
+              </PaginationItem>
+            ))}
+            <PaginationItem>
+              <PaginationNext
+                onClick={() => setPage(p => Math.min(Math.ceil(meta.total / meta.limit), p + 1))}
+                className={page === Math.ceil(meta.total / meta.limit) ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
     </div>
   );
 }
