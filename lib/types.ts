@@ -1,6 +1,14 @@
 export type UserRole = "USER" | "HOST" | "ADMIN";
 
-export type EventStatus = "OPEN" | "FULL" | "UPCOMING" | "ONGOING" | "COMPLETED" | "CANCELLED" | "CLOSED" | "PENDING";
+export type EventStatus =
+  | "OPEN"
+  | "FULL"
+  | "UPCOMING"
+  | "ONGOING"
+  | "COMPLETED"
+  | "CANCELLED"
+  | "CLOSED"
+  | "PENDING";
 
 export type EventCategory = string;
 
@@ -25,6 +33,7 @@ export interface User {
   isEmailVerified?: boolean;
   createdAt: string;
   rating?: number;
+  averageRating?: number;
 }
 
 export interface Event {

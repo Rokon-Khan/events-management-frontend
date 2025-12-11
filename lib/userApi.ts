@@ -55,4 +55,20 @@ export const userApi = {
     });
     return response.json();
   },
+
+  async getAllUsers(params?: URLSearchParams): Promise<ApiResponse> {
+    const url = params ? `${API_BASE_URL}/user?${params.toString()}` : `${API_BASE_URL}/user`;
+    const response = await fetch(url, {
+      credentials: "include",
+    });
+    return response.json();
+  },
+
+  async getHosts(params?: URLSearchParams): Promise<ApiResponse> {
+    const url = params ? `${API_BASE_URL}/user/hosts?${params.toString()}` : `${API_BASE_URL}/user/hosts`;
+    const response = await fetch(url, {
+      credentials: "include",
+    });
+    return response.json();
+  },
 };
