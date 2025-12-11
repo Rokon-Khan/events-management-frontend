@@ -35,14 +35,14 @@ export function EventCard({ event, className }: EventCardProps) {
       <GlowCard
         className={cn("group overflow-hidden p-0 cursor-pointer", className)}
       >
-        <div className="relative aspect-[16/10] overflow-hidden">
+        <div className="relative aspect-16/10 overflow-hidden">
           <Image
             src={event.eventImage || "/placeholder.svg"}
-            alt={event.title}
+            alt={event.title || "Event Image"}
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-background/80 to-transparent" />
           <div className="absolute left-3 top-3">
             <Badge
               className={cn("border", getCategoryColor(event.eventCategory))}

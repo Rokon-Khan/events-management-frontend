@@ -362,6 +362,7 @@ export default function EditEventPage() {
                     <SelectContent>
                       <SelectItem value="PENDING">Pending</SelectItem>
                       <SelectItem value="OPEN">Open</SelectItem>
+                      <SelectItem value="UPCOMING">Upcoming</SelectItem>
                       <SelectItem value="ONGOING">Ongoing</SelectItem>
                       <SelectItem value="COMPLETED">Completed</SelectItem>
                       <SelectItem value="CANCELLED">Cancelled</SelectItem>

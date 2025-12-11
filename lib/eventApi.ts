@@ -21,19 +21,25 @@ export const eventApi = {
     return response.json();
   },
 
-  async getAllEvents(params?: {
+  async getAllEvents(params?: URLSearchParams | {
     page?: number;
     limit?: number;
     searchTerm?: string;
     category?: string;
     status?: string;
   }): Promise<ApiResponse> {
-    const queryParams = new URLSearchParams();
-    if (params?.page) queryParams.append("page", params.page.toString());
-    if (params?.limit) queryParams.append("limit", params.limit.toString());
-    if (params?.searchTerm) queryParams.append("searchTerm", params.searchTerm);
-    if (params?.category) queryParams.append("category", params.category);
-    if (params?.status) queryParams.append("status", params.status);
+    let queryParams: URLSearchParams;
+    
+    if (params instanceof URLSearchParams) {
+      queryParams = params;
+    } else {
+      queryParams = new URLSearchParams();
+      if (params?.page) queryParams.append("page", params.page.toString());
+      if (params?.limit) queryParams.append("limit", params.limit.toString());
+      if (params?.searchTerm) queryParams.append("searchTerm", params.searchTerm);
+      if (params?.category) queryParams.append("category", params.category);
+      if (params?.status) queryParams.append("status", params.status);
+    }
 
     const response = await fetch(`${API_BASE_URL}/event?${queryParams}`, {
       credentials: "include",
@@ -73,6 +79,16 @@ export const eventApi = {
     const response = await fetch(`${API_BASE_URL}/event/${id}`, {
       credentials: "include",
     });
+    return response.json();
+  },
+
+  async getMyPerticipatedEvents(): Promise<ApiResponse> {
+    const response = await fetch(
+      `${API_BASE_URL}/event/my-participated-events`,
+      {
+        credentials: "include",
+      }
+    );
     return response.json();
   },
 

@@ -13,6 +13,14 @@ import { EventCard } from "@/components/event-card"
 import { eventApi } from "@/lib/eventApi"
 import type { Event } from "@/lib/types"
 import { toast } from "sonner"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 
 const eventCategories = [
   "Technology", "Education", "Sports", "Music", "Art", "Food", "Business", "Health", "Travel", "Gaming"
@@ -27,17 +35,33 @@ export default function EventsPage() {
   const [sortBy, setSortBy] = useState("date")
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [priceFilter, setPriceFilter] = useState<"all" | "free" | "paid">("all")
+  const [page, setPage] = useState(1)
+  const [meta, setMeta] = useState({ total: 0, page: 1, limit: 12 })
 
   useEffect(() => {
     fetchEvents()
-  }, [])
+  }, [page, searchQuery, selectedCategories, priceFilter])
 
   const fetchEvents = async () => {
     setIsLoading(true)
     try {
-      const response = await eventApi.getAllEvents()
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: "12",
+      })
+      
+      if (searchQuery) {
+        params.append("searchTerm", searchQuery)
+      }
+      
+      if (selectedCategories.length > 0) {
+        params.append("eventCategory", selectedCategories[0])
+      }
+      
+      const response = await eventApi.getAllEvents(params)
       if (response.success) {
         setEvents(response.data || [])
+        setMeta(response.meta || { total: 0, page: 1, limit: 12 })
       }
     } catch (error) {
       toast.error("Failed to fetch events")
@@ -98,6 +122,7 @@ export default function EventsPage() {
     setSelectedCategories([])
     setPriceFilter("all")
     setSortBy("date")
+    setPage(1)
   }
 
   const hasActiveFilters = searchQuery || location || selectedCategories.length > 0 || priceFilter !== "all"
@@ -122,7 +147,10 @@ export default function EventsPage() {
                 placeholder="Search events..."
                 className="pl-10"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value)
+                  setPage(1)
+                }}
               />
             </div>
             <div className="relative sm:w-48">
@@ -239,13 +267,19 @@ export default function EventsPage() {
                 key={category}
                 variant={selectedCategories.includes(category) ? "default" : "outline"}
                 size="sm"
-                onClick={() => toggleCategory(category)}
+                onClick={() => {
+                  toggleCategory(category)
+                  setPage(1)
+                }}
                 className="rounded-full"
               >
                 {category}
               </Button>
             ))}
-            <Select value={priceFilter} onValueChange={(v) => setPriceFilter(v as typeof priceFilter)}>
+            <Select value={priceFilter} onValueChange={(v) => {
+              setPriceFilter(v as typeof priceFilter)
+              setPage(1)
+            }}>
               <SelectTrigger className="w-32 h-8 rounded-full">
                 <SelectValue placeholder="Price" />
               </SelectTrigger>
@@ -302,7 +336,9 @@ export default function EventsPage() {
 
         {/* Results */}
         <div className="mb-4 flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">Showing {filteredEvents.length} events</p>
+          <p className="text-sm text-muted-foreground">
+            Showing {filteredEvents.length} of {meta.total} events (Page {meta.page})
+          </p>
         </div>
 
         {isLoading ? (
@@ -323,6 +359,39 @@ export default function EventsPage() {
             <Button variant="outline" className="mt-4 bg-transparent" onClick={clearFilters}>
               Clear Filters
             </Button>
+          </div>
+        )}
+        
+        {/* Pagination */}
+        {meta.total > meta.limit && (
+          <div className="mt-8">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+                {Array.from({ length: Math.ceil(meta.total / meta.limit) }, (_, i) => i + 1).map(p => (
+                  <PaginationItem key={p}>
+                    <PaginationLink
+                      onClick={() => setPage(p)}
+                      isActive={page === p}
+                      className="cursor-pointer"
+                    >
+                      {p}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() => setPage(p => Math.min(Math.ceil(meta.total / meta.limit), p + 1))}
+                    className={page === Math.ceil(meta.total / meta.limit) ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
           </div>
         )}
       </div>

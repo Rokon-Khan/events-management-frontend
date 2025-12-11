@@ -34,6 +34,8 @@ const eventCategories = [
   "Technology",
   "Education",
   "Sports",
+  "Photography",
+  "Programming",
   "Music",
   "Art",
   "Food",
