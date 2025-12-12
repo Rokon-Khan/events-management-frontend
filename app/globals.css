@@ -29,13 +29,23 @@
   --chart-4: oklch(0.7 0.15 320);
   --chart-5: oklch(0.6 0.2 290);
   --radius: 0.75rem;
-  --sidebar: oklch(0.12 0.03 270);
+  /* --sidebar: oklch(0.96 0.01 270);
   --sidebar-foreground: oklch(0.95 0.01 270);
   --sidebar-primary: oklch(0.55 0.25 270);
   --sidebar-primary-foreground: oklch(0.98 0.005 270);
   --sidebar-accent: oklch(0.2 0.04 270);
   --sidebar-accent-foreground: oklch(0.95 0.01 270);
   --sidebar-border: oklch(0.25 0.04 270);
+  --sidebar-ring: oklch(0.55 0.25 270); */
+
+  /* Subtle light sidebar */
+  --sidebar: oklch(0.96 0.01 270); /* Slightly off-white */
+  --sidebar-foreground: oklch(0.15 0.02 270);
+  --sidebar-primary: oklch(0.55 0.25 270);
+  --sidebar-primary-foreground: oklch(0.98 0.005 270);
+  --sidebar-accent: oklch(0.92 0.02 270); /* Slightly darker for hover */
+  --sidebar-accent-foreground: oklch(0.15 0.02 270);
+  --sidebar-border: oklch(0.88 0.02 270); /* Subtle border */
   --sidebar-ring: oklch(0.55 0.25 270);
 
   /* Custom glow colors */

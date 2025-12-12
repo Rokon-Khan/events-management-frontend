@@ -43,9 +43,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { userApi } from "@/lib/api/userApi";
 import { useAuth } from "@/lib/auth-context";
 import type { User } from "@/lib/types";
+import { userApi } from "@/lib/userApi";
 import { Ban, Eye, MoreVertical, Search, Shield } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -89,14 +89,18 @@ export default function ManageUsersPage() {
     if (!selectedUser) return;
     try {
       const status = actionType === "ban" ? "BLOCKED" : "ACTIVE";
+      console.log("Sending status:", status, "for user:", selectedUser.id);
       const response = await userApi.updateUserStatus(selectedUser.id, status);
+      console.log("Response:", response);
       if (response.success) {
         toast.success(response.message || "User status updated");
         fetchUsers();
       } else {
         toast.error(response.message || "Failed to update status");
+        console.error("Error response:", response);
       }
     } catch (error) {
+      console.error("Network error:", error);
       toast.error("Network error");
     }
     setSelectedUser(null);

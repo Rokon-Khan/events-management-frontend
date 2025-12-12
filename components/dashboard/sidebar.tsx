@@ -86,7 +86,7 @@ export function DashboardSidebar() {
       : userNavItems;
 
   return (
-    <Sidebar className="border-r border-sidebar-border" collapsible="icon">
+    <Sidebar className="border-r border-sidebar-border " collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border p-4">
         <Link href="/" className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
