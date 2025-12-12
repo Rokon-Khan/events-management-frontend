@@ -592,6 +592,7 @@ import { useAuth } from "@/lib/auth-context";
 import { eventApi } from "@/lib/eventApi";
 import { paymentApi } from "@/lib/paymentApi";
 import { reviewApi } from "@/lib/reviewApi";
+import { favouriteEventsApi } from "@/lib/favouriteEventsApi";
 import type { Event } from "@/lib/types";
 import {
   AlertCircle,
@@ -621,7 +622,7 @@ export default function EventDetailPage() {
   const [isJoining, setIsJoining] = useState(false);
   const [hasJoined, setHasJoined] = useState(false);
   const [hasReviewed, setHasReviewed] = useState(false);
-  const [isSaved, setIsSaved] = useState(false);
+  const [isFavourite, setIsFavourite] = useState(false);
   const [paymentData, setPaymentData] = useState<{
     clientSecret: string;
     amount: number;
@@ -637,17 +638,21 @@ export default function EventDetailPage() {
     if (user && event) {
       checkUserParticipation();
       checkUserReview();
+      checkIfFavourite();
     }
   }, [user, event]);
 
   const fetchHostReviews = async () => {
+    if (!params.id) return;
     try {
-      const response = await reviewApi.getAllReviews();
+      const response = await reviewApi.getHostReviewsByEventId(params.id as string);
+      console.log("Reviews API response:", response);
       if (response.success && response.data) {
+        console.log("Setting reviews:", response.data);
         setHostReviews(response.data);
       }
     } catch (error) {
-      console.error("Failed to load reviews");
+      console.error("Failed to load reviews:", error);
     }
   };
 
@@ -713,7 +718,7 @@ export default function EventDetailPage() {
     }
   };
 
-  // Helper function to get reviews for current host
+  // Helper function to get reviews for current host (no longer needed)
   const getReviewsForCurrentHost = () => {
     if (!event || !hostReviews.length) return [];
 
@@ -773,7 +778,7 @@ export default function EventDetailPage() {
   const canJoinByTime = !isPast && !isFull && !hasJoined;
   const canJoin = canJoinByStatus && canJoinByTime;
 
-  const hostReviewsForEvent = getReviewsForCurrentHost();
+  const hostReviewsForEvent = hostReviews;
 
   const handleJoin = async () => {
     if (!user) {
@@ -831,6 +836,44 @@ export default function EventDetailPage() {
     setHasReviewed(true);
     fetchHostReviews(); // Refresh reviews
     toast.success("Review submitted successfully!");
+  };
+
+  const checkIfFavourite = async () => {
+    if (!user || !event) return;
+    try {
+      const response = await favouriteEventsApi.getMyFavourites();
+      if (response.success && response.data) {
+        const isFav = response.data.some((fav: any) => fav.eventId === event.id);
+        setIsFavourite(isFav);
+      }
+    } catch (error) {
+      console.error("Failed to check favourite status:", error);
+    }
+  };
+
+  const handleToggleFavourite = async () => {
+    if (!user) {
+      toast.error("Please log in to save events");
+      return;
+    }
+
+    try {
+      if (isFavourite) {
+        const response = await favouriteEventsApi.removeFromFavourites(event!.id);
+        if (response.success) {
+          setIsFavourite(false);
+          toast.success("Removed from favourites");
+        }
+      } else {
+        const response = await favouriteEventsApi.addToFavourites(event!.id);
+        if (response.success) {
+          setIsFavourite(true);
+          toast.success("Added to favourites");
+        }
+      }
+    } catch (error) {
+      toast.error("Failed to update favourites");
+    }
   };
 
   return (
@@ -1097,11 +1140,11 @@ export default function EventDetailPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setIsSaved(!isSaved)}
+                      onClick={handleToggleFavourite}
                     >
                       <Heart
                         className={`h-4 w-4 ${
-                          isSaved ? "fill-current text-red-500" : ""
+                          isFavourite ? "fill-current text-red-500" : ""
                         }`}
                       />
                     </Button>

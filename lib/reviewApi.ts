@@ -60,4 +60,22 @@ export const reviewApi = {
     });
     return response.json();
   },
+
+  // Get host's own reviews (HOST only)
+  getHostMyReviews: async () => {
+    const response = await fetch(`${API_BASE_URL}/review/host-my-reviews`, {
+      method: "GET",
+      credentials: "include",
+    });
+    return response.json();
+  },
+
+  // Get host reviews by event ID
+  getHostReviewsByEventId: async (eventId: string) => {
+    const response = await fetch(`${API_BASE_URL}/review/host-reviews/${eventId}`, {
+      method: "GET",
+      credentials: "include",
+    });
+    return response.json();
+  },
 };
