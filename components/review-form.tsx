@@ -1,12 +1,8 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { Star } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -15,44 +11,67 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { toast } from "sonner"
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { reviewApi } from "@/lib/reviewApi";
+import { Star } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 interface ReviewFormProps {
-  eventId: string
-  hostId: string
-  hostName: string
-  onSubmit?: () => void
-  trigger?: React.ReactNode
+  eventId: string;
+  hostName: string;
+  onSubmit?: () => void;
+  trigger?: React.ReactNode;
 }
 
-export function ReviewForm({ eventId, hostId, hostName, onSubmit, trigger }: ReviewFormProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const [rating, setRating] = useState(0)
-  const [hoverRating, setHoverRating] = useState(0)
-  const [comment, setComment] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
+export function ReviewForm({
+  eventId,
+  hostName,
+  onSubmit,
+  trigger,
+}: ReviewFormProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async () => {
     if (rating === 0) {
-      toast.error("Please select a rating")
-      return
+      toast.error("Please select a rating");
+      return;
     }
 
     if (comment.trim().length < 10) {
-      toast.error("Please write a review with at least 10 characters")
-      return
+      toast.error("Please write a review with at least 10 characters");
+      return;
     }
 
-    setIsSubmitting(true)
-    await new Promise((r) => setTimeout(r, 1500))
-    setIsSubmitting(false)
-    setIsOpen(false)
-    setRating(0)
-    setComment("")
-    toast.success("Review submitted successfully!")
-    onSubmit?.()
-  }
+    setIsSubmitting(true);
+    try {
+      // const { reviewApi } = await import("@/lib/reviewApi");
+      const response = await reviewApi.createReview({
+        eventId,
+        rating,
+        comment: comment.trim(),
+      });
+
+      if (response.success) {
+        setIsOpen(false);
+        setRating(0);
+        setComment("");
+        toast.success("Review submitted successfully!");
+        onSubmit?.();
+      } else {
+        toast.error(response.message || "Failed to submit review");
+      }
+    } catch (error) {
+      toast.error("Network error. Please try again.");
+    }
+    setIsSubmitting(false);
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -67,7 +86,9 @@ export function ReviewForm({ eventId, hostId, hostName, onSubmit, trigger }: Rev
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Review {hostName}</DialogTitle>
-          <DialogDescription>Share your experience with this host to help others</DialogDescription>
+          <DialogDescription>
+            Share your experience with this host to help others
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
@@ -86,7 +107,9 @@ export function ReviewForm({ eventId, hostId, hostName, onSubmit, trigger }: Rev
                 >
                   <Star
                     className={`h-8 w-8 transition-colors ${
-                      star <= (hoverRating || rating) ? "fill-primary text-primary" : "text-muted-foreground"
+                      star <= (hoverRating || rating)
+                        ? "fill-primary text-primary"
+                        : "text-muted-foreground"
                     }`}
                   />
                 </button>
@@ -113,7 +136,9 @@ export function ReviewForm({ eventId, hostId, hostName, onSubmit, trigger }: Rev
               value={comment}
               onChange={(e) => setComment(e.target.value)}
             />
-            <p className="text-xs text-muted-foreground">{comment.length}/500 characters (minimum 10)</p>
+            <p className="text-xs text-muted-foreground">
+              {comment.length}/500 characters (minimum 10)
+            </p>
           </div>
         </div>
 
@@ -127,5 +152,5 @@ export function ReviewForm({ eventId, hostId, hostName, onSubmit, trigger }: Rev
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

@@ -21,22 +21,27 @@ export const eventApi = {
     return response.json();
   },
 
-  async getAllEvents(params?: URLSearchParams | {
-    page?: number;
-    limit?: number;
-    searchTerm?: string;
-    category?: string;
-    status?: string;
-  }): Promise<ApiResponse> {
+  async getAllEvents(
+    params?:
+      | URLSearchParams
+      | {
+          page?: number;
+          limit?: number;
+          searchTerm?: string;
+          category?: string;
+          status?: string;
+        }
+  ): Promise<ApiResponse> {
     let queryParams: URLSearchParams;
-    
+
     if (params instanceof URLSearchParams) {
       queryParams = params;
     } else {
       queryParams = new URLSearchParams();
       if (params?.page) queryParams.append("page", params.page.toString());
       if (params?.limit) queryParams.append("limit", params.limit.toString());
-      if (params?.searchTerm) queryParams.append("searchTerm", params.searchTerm);
+      if (params?.searchTerm)
+        queryParams.append("searchTerm", params.searchTerm);
       if (params?.category) queryParams.append("category", params.category);
       if (params?.status) queryParams.append("status", params.status);
     }
@@ -86,6 +91,46 @@ export const eventApi = {
     const response = await fetch(
       `${API_BASE_URL}/event/my-participated-events`,
       {
+        credentials: "include",
+      }
+    );
+    return response.json();
+  },
+
+  // Check if user has participated in an event
+  checkUserParticipation: async (eventId: string) => {
+    const response = await fetch(
+      `${API_BASE_URL}/event/my-participated-events/${eventId}`,
+      {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      // If 404, user hasn't participated
+      if (response.status === 404) {
+        return {
+          success: false,
+          message: "Not participated",
+          data: { hasJoined: false },
+        };
+      }
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  },
+
+  // Get user's participated event by ID
+  getMyParticipatedEventById: async (eventId: string) => {
+    const response = await fetch(
+      `${API_BASE_URL}/event/my-participated-events/${eventId}`,
+      {
+        method: "GET",
         credentials: "include",
       }
     );

@@ -3,7 +3,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5
 export const reviewApi = {
   // Create a new review
   createReview: async (reviewData: { rating: number; comment: string; eventId: string }) => {
-    const response = await fetch(`${API_BASE_URL}/reviews`, {
+    const response = await fetch(`${API_BASE_URL}/review`, {
       method: "POST",
       credentials: "include",
       headers: {
