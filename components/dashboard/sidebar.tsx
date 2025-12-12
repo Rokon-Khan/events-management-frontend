@@ -58,6 +58,7 @@ export function DashboardSidebar() {
     { title: "Overview", href: "/dashboard", icon: LayoutDashboard },
     { title: "Create Event", href: "/dashboard/events/create", icon: Plus },
     { title: "My Events", href: "/dashboard/my-events", icon: Calendar },
+    { title: "Saved Events", href: "/dashboard/saved", icon: Heart },
     // { title: "Participants", href: "/dashboard/participants", icon: Users },
     // { title: "Revenue", href: "/dashboard/revenue", icon: CreditCard },
     { title: "Reviews", href: "/dashboard/reviews", icon: Star },

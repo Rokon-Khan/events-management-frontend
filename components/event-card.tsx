@@ -5,9 +5,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import type { Event } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { Calendar, Clock, DollarSign, MapPin, Users } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
+import { favouriteEventsApi } from "@/lib/favouriteEventsApi";
+import { Calendar, Clock, DollarSign, MapPin, Users, Heart } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
 
 interface EventCardProps {
   event: Event;
@@ -27,8 +31,60 @@ const getCategoryColor = (category: string) => {
 };
 
 export function EventCard({ event, className }: EventCardProps) {
+  const { user } = useAuth();
+  const [isFavourite, setIsFavourite] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const spotsLeft = event.maxParticipants - event.currentParticipants;
   const isFull = spotsLeft <= 0;
+
+  useEffect(() => {
+    if (user) {
+      checkIfFavourite();
+    }
+  }, [user, event.id]);
+
+  const checkIfFavourite = async () => {
+    try {
+      const response = await favouriteEventsApi.getMyFavourites();
+      if (response.success && response.data) {
+        const isFav = response.data.some((fav: any) => fav.eventId === event.id);
+        setIsFavourite(isFav);
+      }
+    } catch (error) {
+      console.error("Failed to check favourite status:", error);
+    }
+  };
+
+  const handleToggleFavourite = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!user) {
+      toast.error("Please log in to save events");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      if (isFavourite) {
+        const response = await favouriteEventsApi.removeFromFavourites(event.id);
+        if (response.success) {
+          setIsFavourite(false);
+          toast.success("Removed from favourites");
+        }
+      } else {
+        const response = await favouriteEventsApi.addToFavourites(event.id);
+        if (response.success) {
+          setIsFavourite(true);
+          toast.success("Added to favourites");
+        }
+      }
+    } catch (error) {
+      toast.error("Failed to update favourites");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <Link href={`/events/${event.id}`}>
@@ -50,11 +106,24 @@ export function EventCard({ event, className }: EventCardProps) {
               {event.eventCategory}
             </Badge>
           </div>
-          {isFull && (
-            <div className="absolute right-3 top-3">
+          <div className="absolute right-3 top-3 flex items-center gap-2">
+            {user && (
+              <button
+                onClick={handleToggleFavourite}
+                disabled={isLoading}
+                className="p-2 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-colors disabled:opacity-50"
+              >
+                <Heart
+                  className={`h-4 w-4 transition-colors ${
+                    isFavourite ? "fill-red-500 text-red-500" : "text-muted-foreground hover:text-red-500"
+                  }`}
+                />
+              </button>
+            )}
+            {isFull && (
               <Badge variant="destructive">Full</Badge>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         <div className="p-4 space-y-3">

@@ -590,9 +590,9 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/lib/auth-context";
 import { eventApi } from "@/lib/eventApi";
+import { favouriteEventsApi } from "@/lib/favouriteEventsApi";
 import { paymentApi } from "@/lib/paymentApi";
 import { reviewApi } from "@/lib/reviewApi";
-import { favouriteEventsApi } from "@/lib/favouriteEventsApi";
 import type { Event } from "@/lib/types";
 import {
   AlertCircle,
@@ -645,7 +645,9 @@ export default function EventDetailPage() {
   const fetchHostReviews = async () => {
     if (!params.id) return;
     try {
-      const response = await reviewApi.getHostReviewsByEventId(params.id as string);
+      const response = await reviewApi.getHostReviewsByEventId(
+        params.id as string
+      );
       console.log("Reviews API response:", response);
       if (response.success && response.data) {
         console.log("Setting reviews:", response.data);
@@ -843,7 +845,9 @@ export default function EventDetailPage() {
     try {
       const response = await favouriteEventsApi.getMyFavourites();
       if (response.success && response.data) {
-        const isFav = response.data.some((fav: any) => fav.eventId === event.id);
+        const isFav = response.data.some(
+          (fav: any) => fav.eventId === event.id
+        );
         setIsFavourite(isFav);
       }
     } catch (error) {
@@ -859,7 +863,9 @@ export default function EventDetailPage() {
 
     try {
       if (isFavourite) {
-        const response = await favouriteEventsApi.removeFromFavourites(event!.id);
+        const response = await favouriteEventsApi.removeFromFavourites(
+          event!.id
+        );
         if (response.success) {
           setIsFavourite(false);
           toast.success("Removed from favourites");
@@ -1141,6 +1147,7 @@ export default function EventDetailPage() {
                       variant="outline"
                       size="sm"
                       onClick={handleToggleFavourite}
+                      disabled={!user}
                     >
                       <Heart
                         className={`h-4 w-4 ${

@@ -52,6 +52,7 @@ export default function ReviewsPage() {
   const [meta, setMeta] = useState({ total: 0, page: 1, limit: 10 });
 
   const isAdmin = user?.role === "ADMIN";
+  const isHost = user?.role === "HOST";
 
   useEffect(() => {
     fetchReviews();
@@ -60,23 +61,49 @@ export default function ReviewsPage() {
   const fetchReviews = async () => {
     setIsLoading(true);
     try {
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: "10",
-      });
+      let response;
       
-      if (searchQuery) {
-        params.append("searchTerm", searchQuery);
-      }
-      
-      if (ratingFilter !== "all") {
-        params.append("rating", ratingFilter);
-      }
+      if (isHost) {
+        // For hosts, get their own reviews
+        response = await reviewApi.getHostMyReviews();
+      } else {
+        // For admin and users, get all reviews with filters
+        const params = new URLSearchParams({
+          page: page.toString(),
+          limit: "10",
+        });
+        
+        if (searchQuery) {
+          params.append("searchTerm", searchQuery);
+        }
+        
+        if (ratingFilter !== "all") {
+          params.append("rating", ratingFilter);
+        }
 
-      const response = await reviewApi.getAllReviews(params);
+        response = await reviewApi.getAllReviews(params);
+      }
+      
       if (response.success) {
-        setReviews(response.data || []);
-        setMeta(response.meta || { total: 0, page: 1, limit: 10 });
+        let reviewsData = response.data || [];
+        
+        // Apply client-side filtering for host reviews if needed
+        if (isHost && (searchQuery || ratingFilter !== "all")) {
+          if (searchQuery) {
+            reviewsData = reviewsData.filter((review: any) =>
+              review.comment.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              review.user?.fullName?.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+          }
+          if (ratingFilter !== "all") {
+            reviewsData = reviewsData.filter((review: any) => 
+              review.rating === parseInt(ratingFilter)
+            );
+          }
+        }
+        
+        setReviews(reviewsData);
+        setMeta(response.meta || { total: reviewsData.length, page: 1, limit: 10 });
       }
     } catch (error) {
       toast.error("Failed to fetch reviews");
@@ -120,11 +147,13 @@ export default function ReviewsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">
-          {isAdmin ? "All Reviews" : "My Reviews"}
+          {isAdmin ? "All Reviews" : isHost ? "My Host Reviews" : "My Reviews"}
         </h1>
         <p className="text-muted-foreground">
           {isAdmin
             ? "Moderate and manage platform reviews"
+            : isHost
+            ? "Reviews you've received as a host"
             : "Reviews you've received and given"}
         </p>
       </div>
@@ -227,7 +256,11 @@ export default function ReviewsPage() {
                         </Link>
                         <span className="text-sm text-muted-foreground">
                           {" "}
-                          Event ID: {review.eventId}
+                          {new Date(review.createdAt).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
