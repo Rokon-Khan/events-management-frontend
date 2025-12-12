@@ -1,40 +1,109 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { Calendar, Star, ArrowRight, CalendarCheck, Heart, Clock } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { GlowCard } from "@/components/glow-card"
-import { EventCard } from "@/components/event-card"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { useAuth } from "@/lib/auth-context"
-import { mockEvents } from "@/lib/mock-data"
+import { EventCard } from "@/components/event-card";
+import { GlowCard } from "@/components/glow-card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { useAuth } from "@/lib/auth-context";
+import { eventApi } from "@/lib/eventApi";
+import { reportsApi } from "@/lib/reportsApi";
+import { ArrowRight, Calendar, CalendarCheck, Star } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export function UserDashboard() {
-  const { user } = useAuth()
+  const { user } = useAuth();
+  const [userStats, setUserStats] = useState<any>(null);
+  const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
+  const [recommendedEvents, setRecommendedEvents] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const upcomingEvents = mockEvents
-    .filter((e) => new Date(e.date) > new Date() && e.participants.some((p) => p.id === user?.id))
-    .slice(0, 3)
+  useEffect(() => {
+    if (user) {
+      fetchUserData();
+    }
+  }, [user]);
 
-  const pastEvents = mockEvents.filter(
-    (e) => new Date(e.date) < new Date() && e.participants.some((p) => p.id === user?.id),
-  )
+  const fetchUserData = async () => {
+    try {
+      const [statsResponse, upcomingResponse, allEventsResponse] =
+        await Promise.all([
+          reportsApi.getUserStats(),
+          eventApi.getMyPerticipatedEvents(),
+          eventApi.getAllEvents({ limit: 6 }),
+        ]);
 
-  const stats = [
-    { label: "Events Joined", value: 12, icon: CalendarCheck, change: "+3 this month" },
-    { label: "Saved Events", value: 8, icon: Heart, change: "+2 this week" },
-    { label: "Reviews Given", value: 6, icon: Star, change: "4.8 avg rating" },
-    { label: "Hours Spent", value: 48, icon: Clock, change: "In activities" },
-  ]
+      if (statsResponse.success) {
+        setUserStats(statsResponse.data);
+      }
+
+      if (upcomingResponse.success) {
+        const upcoming =
+          upcomingResponse.data?.filter(
+            (event: any) => new Date(event.date) > new Date()
+          ) || [];
+        setUpcomingEvents(upcoming.slice(0, 3));
+      }
+
+      if (allEventsResponse.success) {
+        setRecommendedEvents(allEventsResponse.data?.slice(0, 3) || []);
+      }
+    } catch (error) {
+      toast.error("Failed to load dashboard data");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const stats = userStats
+    ? [
+        {
+          label: "Events Joined",
+          value: userStats.totalEventsParticipants || 0,
+          icon: CalendarCheck,
+          change: `${userStats.monthlyEventsParticipants || 0} this month`,
+        },
+        {
+          label: "Reviews Given",
+          value: userStats.totalReviewsGiven || 0,
+          icon: Star,
+          change: `${userStats.averageRatingGiven || 0} avg rating`,
+        },
+        {
+          label: " Averege Reviews Given",
+          value: userStats.averageRatingGiven || 0,
+          icon: Star,
+          change: `${userStats.averageRatingGiven || 0} avg rating`,
+        },
+        {
+          label: "Monthly Events Participation",
+          value: userStats.monthlyEventsParticipants || 0,
+          icon: Calendar,
+          change: `${userStats.averageRatingGiven || 0} avg rating`,
+        },
+      ]
+    : [];
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center">
+        <div className="text-center">Loading dashboard...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold tracking-tight">
-          Welcome back, <span className="gradient-text">{user?.fullName?.split(" ")[0]}</span>
+          Welcome back,{" "}
+          <span className="gradient-text">{user?.fullName?.split(" ")[0]}</span>
         </h1>
-        <p className="text-muted-foreground">Here's what's happening with your events</p>
+        <p className="text-muted-foreground">
+          Here's what's happening with your events
+        </p>
       </div>
 
       {/* Stats Grid */}
@@ -58,19 +127,32 @@ export function UserDashboard() {
       </div>
 
       {/* Activity Progress */}
-      <GlowCard>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-          <div>
-            <h2 className="font-semibold text-lg">Monthly Activity Goal</h2>
-            <p className="text-sm text-muted-foreground">You're doing great! Keep it up.</p>
+      {userStats && (
+        <GlowCard>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+            <div>
+              <h2 className="font-semibold text-lg">Monthly Activity</h2>
+              <p className="text-sm text-muted-foreground">
+                Your participation this month
+              </p>
+            </div>
+            <Badge variant="outline" className="w-fit">
+              {userStats.monthlyEventsParticipants || 0} events
+            </Badge>
           </div>
-          <Badge variant="outline" className="w-fit">
-            8 of 10 events
-          </Badge>
-        </div>
-        <Progress value={80} className="h-2" />
-        <p className="text-xs text-muted-foreground mt-2">2 more events to reach your monthly goal</p>
-      </GlowCard>
+          <Progress
+            value={Math.min(
+              (userStats.monthlyEventsParticipants || 0) * 10,
+              100
+            )}
+            className="h-2"
+          />
+          <p className="text-xs text-muted-foreground mt-2">
+            {userStats.monthlyEventsParticipants || 0} events participated this
+            month
+          </p>
+        </GlowCard>
+      )}
 
       {/* Upcoming Events */}
       <div>
@@ -92,7 +174,9 @@ export function UserDashboard() {
           <GlowCard className="text-center py-12">
             <Calendar className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
             <h3 className="font-semibold">No upcoming events</h3>
-            <p className="text-sm text-muted-foreground mt-1">Join an event to see it here</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Join an event to see it here
+            </p>
             <Link href="/events">
               <Button className="mt-4">Browse Events</Button>
             </Link>
@@ -111,11 +195,11 @@ export function UserDashboard() {
           </Link>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {mockEvents.slice(0, 3).map((event) => (
+          {recommendedEvents.map((event) => (
             <EventCard key={event.id} event={event} />
           ))}
         </div>
       </div>
     </div>
-  )
+  );
 }

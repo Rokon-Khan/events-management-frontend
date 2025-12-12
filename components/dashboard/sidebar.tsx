@@ -38,7 +38,6 @@ import {
   Star,
   UserCheck2,
   UserCog,
-  Users,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -59,8 +58,8 @@ export function DashboardSidebar() {
     { title: "Overview", href: "/dashboard", icon: LayoutDashboard },
     { title: "Create Event", href: "/dashboard/events/create", icon: Plus },
     { title: "My Events", href: "/dashboard/my-events", icon: Calendar },
-    { title: "Participants", href: "/dashboard/participants", icon: Users },
-    { title: "Revenue", href: "/dashboard/revenue", icon: CreditCard },
+    // { title: "Participants", href: "/dashboard/participants", icon: Users },
+    // { title: "Revenue", href: "/dashboard/revenue", icon: CreditCard },
     { title: "Reviews", href: "/dashboard/reviews", icon: Star },
   ];
 
