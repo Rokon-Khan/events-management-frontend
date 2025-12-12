@@ -4,16 +4,10 @@ import { GlowCard } from "@/components/glow-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { useAuth } from "@/lib/auth-context";
-import { mockEvents, mockReviews } from "@/lib/mock-data";
+import { eventApi } from "@/lib/eventApi";
+import { reportsApi } from "@/lib/reportsApi";
+import { reviewApi } from "@/lib/reviewApi";
 import {
   ArrowRight,
   Calendar,
@@ -22,68 +16,93 @@ import {
   Plus,
   Star,
   TrendingUp,
-  Users,
 } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export function HostDashboard() {
   const { user } = useAuth();
+  const [hostStats, setHostStats] = useState<any>(null);
+  const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
+  const [recentReviews, setRecentReviews] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const hostedEvents = mockEvents.filter((e) => e.hostId === user?.id);
-  const upcomingHosted = hostedEvents.filter(
-    (e) => new Date(e.date) > new Date()
-  );
-  const totalRevenue = hostedEvents.reduce(
-    (acc, e) => acc + e.fee * e.currentParticipants,
-    0
-  );
-  const totalParticipants = hostedEvents.reduce(
-    (acc, e) => acc + e.currentParticipants,
-    0
-  );
-  const hostReviews = mockReviews.filter((r) => r.hostId === user?.id);
+  useEffect(() => {
+    if (user) {
+      fetchHostData();
+    }
+  }, [user]);
 
-  const stats = [
-    {
-      label: "Total Events",
-      value: hostedEvents.length,
-      icon: Calendar,
-      change: "+2 this month",
-      trend: "up",
-    },
-    {
-      label: "Total Participants",
-      value: totalParticipants,
-      icon: Users,
-      change: "+18 this week",
-      trend: "up",
-    },
-    {
-      label: "Revenue",
-      value: `$${totalRevenue}`,
-      icon: DollarSign,
-      change: "+12%",
-      trend: "up",
-    },
-    {
-      label: "Avg Rating",
-      value: user?.rating || 0,
-      icon: Star,
-      change: `${hostReviews.length} reviews`,
-      trend: "neutral",
-    },
-  ];
+  const fetchHostData = async () => {
+    try {
+      const [statsResponse, eventsResponse, reviewsResponse] =
+        await Promise.all([
+          reportsApi.getHostStats(),
+          eventApi.getUpcomingEvents(),
+          reviewApi.getHostMyReviews(),
+        ]);
 
-  const recentParticipants = mockEvents
-    .filter((e) => e.hostId === user?.id)
-    .flatMap((e) =>
-      e.participants.map((p) => ({
-        ...p,
-        eventName: e.name,
-        eventDate: e.date,
-      }))
-    )
-    .slice(0, 5);
+      if (statsResponse.success) {
+        setHostStats(statsResponse.data);
+      }
+
+      if (eventsResponse.success) {
+        setUpcomingEvents(eventsResponse.data || []);
+      }
+
+      if (reviewsResponse.success) {
+        setRecentReviews(reviewsResponse.data || []);
+      }
+    } catch (error) {
+      toast.error("Failed to load dashboard data");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const stats = hostStats
+    ? [
+        {
+          label: "Total Events",
+          value: hostStats.totalEventsHosted || 0,
+          icon: Calendar,
+          change: `${hostStats.monthlyEventsHosted || 0} this month`,
+          trend: "up",
+        },
+        {
+          label: "Total Revenue",
+          value: `$${hostStats.totalRevenue || 0}`,
+          icon: DollarSign,
+          change: "Total earned",
+          trend: "up",
+        },
+        {
+          label: "Avg Rating",
+          value: hostStats.averageRating
+            ? hostStats.averageRating.toFixed(1)
+            : "0.0",
+          icon: Star,
+          change: `${recentReviews.length} reviews`,
+          trend: "neutral",
+        },
+        {
+          label: "Monthly Events",
+          value: hostStats.monthlyEventsHosted || 0,
+          icon: Calendar,
+          change: `${hostStats.monthlyEventsHosted || 0} this month`,
+          trend: "up",
+        },
+      ]
+    : [];
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center">
+        <div className="text-center">Loading dashboard...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -142,14 +161,14 @@ export function HostDashboard() {
             </Link>
           </div>
           <div className="space-y-3">
-            {upcomingHosted.length > 0 ? (
-              upcomingHosted.slice(0, 4).map((event) => (
+            {upcomingEvents.length > 0 ? (
+              upcomingEvents.slice(0, 4).map((event) => (
                 <div
                   key={event.id}
                   className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
                 >
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{event.name}</p>
+                    <p className="font-medium truncate">{event.title}</p>
                     <p className="text-sm text-muted-foreground">
                       {new Date(event.date).toLocaleDateString("en-US", {
                         month: "short",
@@ -192,24 +211,24 @@ export function HostDashboard() {
             </Link>
           </div>
           <div className="space-y-3">
-            {hostReviews.length > 0 ? (
-              hostReviews.slice(0, 3).map((review) => (
+            {recentReviews.length > 0 ? (
+              recentReviews.slice(0, 3).map((review) => (
                 <div
                   key={review.id}
                   className="flex gap-3 p-3 rounded-lg bg-muted/50"
                 >
                   <Avatar className="h-9 w-9">
                     <AvatarImage
-                      src={review.user.avatar || "/placeholder.svg"}
+                      src={review.user?.profilePhoto || "/placeholder.svg"}
                     />
                     <AvatarFallback>
-                      {review.user.fullName.charAt(0)}
+                      {review.user?.fullName?.charAt(0) || "U"}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <p className="font-medium text-sm">
-                        {review.user.fullName}
+                        {review.user?.fullName || "Anonymous"}
                       </p>
                       <div className="flex items-center gap-1">
                         <Star className="h-3 w-3 fill-primary text-primary" />
@@ -231,75 +250,6 @@ export function HostDashboard() {
           </div>
         </GlowCard>
       </div>
-
-      {/* Recent Participants */}
-      <GlowCard>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold text-lg">Recent Participants</h2>
-          <Link href="/dashboard/participants">
-            <Button variant="ghost" size="sm" className="gap-1">
-              View all <ArrowRight className="h-4 w-4" />
-            </Button>
-          </Link>
-        </div>
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Participant</TableHead>
-                <TableHead>Event</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {recentParticipants.length > 0 ? (
-                recentParticipants.map((participant, idx) => (
-                  <TableRow key={`${participant.id}-${idx}`}>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage
-                            src={participant.avatar || "/placeholder.svg"}
-                          />
-                          <AvatarFallback>
-                            {participant.fullName.charAt(0)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="font-medium">
-                          {participant.fullName}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {participant.eventName}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {new Date(participant.eventDate).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Link href={`/profile/${participant.id}`}>
-                        <Button variant="ghost" size="sm">
-                          View Profile
-                        </Button>
-                      </Link>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={4}
-                    className="text-center py-8 text-muted-foreground"
-                  >
-                    No participants yet
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </GlowCard>
     </div>
   );
 }
