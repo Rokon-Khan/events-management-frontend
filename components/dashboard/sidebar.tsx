@@ -57,7 +57,7 @@ export function DashboardSidebar() {
   const hostNavItems = [
     { title: "Overview", href: "/dashboard", icon: LayoutDashboard },
     { title: "Create Event", href: "/dashboard/events/create", icon: Plus },
-    { title: "My Events", href: "/dashboard/my-events", icon: Calendar },
+    { title: "My Events", href: "/dashboard/host-my-events", icon: Calendar },
     { title: "Saved Events", href: "/dashboard/saved", icon: Heart },
     // { title: "Participants", href: "/dashboard/participants", icon: Users },
     // { title: "Revenue", href: "/dashboard/revenue", icon: CreditCard },

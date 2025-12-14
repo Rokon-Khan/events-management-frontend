@@ -96,6 +96,12 @@ export const eventApi = {
     );
     return response.json();
   },
+  async getMyCreatedEvents(): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/event/my-created-events`, {
+      credentials: "include",
+    });
+    return response.json();
+  },
 
   // Check if user has participated in an event
   checkUserParticipation: async (eventId: string) => {
