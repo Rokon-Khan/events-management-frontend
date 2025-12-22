@@ -20,11 +20,11 @@ import {
   Menu,
   Plus,
   Shield,
-  Sparkles,
   User,
   Users,
   X,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -66,7 +66,13 @@ export function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-              <Sparkles className="h-5 w-5 text-primary-foreground" />
+              {/* <Sparkles className="h-5 w-5 text-primary-foreground" /> */}
+              <Image
+                src="/event-hub-logo.png"
+                alt="EventHub Logo"
+                width={20}
+                height={20}
+              />
             </div>
             <span className="text-xl font-bold gradient-text">EventHub</span>
           </Link>

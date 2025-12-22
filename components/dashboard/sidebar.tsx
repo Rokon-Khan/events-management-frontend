@@ -34,11 +34,11 @@ import {
   Plus,
   Settings,
   Shield,
-  Sparkles,
   Star,
   UserCheck2,
   UserCog,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -90,7 +90,12 @@ export function DashboardSidebar() {
       <SidebarHeader className="border-b border-sidebar-border p-4">
         <Link href="/" className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-            <Sparkles className="h-4 w-4 text-primary-foreground" />
+            <Image
+              src="/event-hub-logo.png"
+              alt="EventHub Logo"
+              width={20}
+              height={20}
+            />
           </div>
           <span className="font-bold text-lg text-sidebar-foreground">
             EventHub
