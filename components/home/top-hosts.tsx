@@ -1,12 +1,12 @@
-import Link from "next/link"
-import Image from "next/image"
-import { Star, MapPin, Calendar } from "lucide-react"
-import { GlowCard } from "@/components/glow-card"
-import { Badge } from "@/components/ui/badge"
-import { mockUsers, mockEvents } from "@/lib/mock-data"
+import { GlowCard } from "@/components/glow-card";
+import { Badge } from "@/components/ui/badge";
+import { mockEvents, mockUsers } from "@/lib/mock-data";
+import { Calendar, MapPin, Star } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 
 export function TopHosts() {
-  const hosts = mockUsers.filter((u) => u.role === "host")
+  const hosts = mockUsers.filter((u) => u.role === "host");
 
   return (
     <section className="py-20">
@@ -16,13 +16,16 @@ export function TopHosts() {
             Top-Rated <span className="gradient-text">Hosts</span>
           </h2>
           <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
-            Meet our amazing community hosts who create unforgettable experiences
+            Meet our amazing community hosts who create unforgettable
+            experiences
           </p>
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {hosts.map((host) => {
-            const hostedEvents = mockEvents.filter((e) => e.hostId === host.id).length
+            const hostedEvents = mockEvents.filter(
+              (e) => e.hostId === host.id
+            ).length;
             return (
               <Link key={host.id} href={`/profile/${host.id}`}>
                 <GlowCard className="group flex flex-col items-center text-center cursor-pointer">
@@ -32,7 +35,9 @@ export function TopHosts() {
                         src={
                           host.id === "user_2"
                             ? "/professional-woman-headshot.png"
-                            : "/asian-man-professional-headshot.png"
+                            : host.id === "user_3"
+                            ? "/asian-man-professional-headshot.png"
+                            : "/young-woman-smiling-headshot.png"
                         }
                         alt={host.fullName}
                         fill
@@ -45,14 +50,18 @@ export function TopHosts() {
                     </Badge>
                   </div>
 
-                  <h3 className="text-lg font-semibold group-hover:text-primary transition-colors">{host.fullName}</h3>
+                  <h3 className="text-lg font-semibold group-hover:text-primary transition-colors">
+                    {host.fullName}
+                  </h3>
 
                   <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
                     <MapPin className="h-3 w-3" />
                     {host.location}
                   </div>
 
-                  <p className="mt-3 text-sm text-muted-foreground line-clamp-2">{host.bio}</p>
+                  <p className="mt-3 text-sm text-muted-foreground line-clamp-2">
+                    {host.bio}
+                  </p>
 
                   <div className="mt-4 flex items-center gap-4 text-sm">
                     <div className="flex items-center gap-1">
@@ -69,17 +78,21 @@ export function TopHosts() {
 
                   <div className="mt-4 flex flex-wrap justify-center gap-1">
                     {host.interests.slice(0, 3).map((interest) => (
-                      <Badge key={interest} variant="secondary" className="text-xs">
+                      <Badge
+                        key={interest}
+                        variant="secondary"
+                        className="text-xs"
+                      >
                         {interest}
                       </Badge>
                     ))}
                   </div>
                 </GlowCard>
               </Link>
-            )
+            );
           })}
         </div>
       </div>
     </section>
-  )
+  );
 }

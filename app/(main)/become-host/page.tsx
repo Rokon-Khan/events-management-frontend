@@ -456,7 +456,7 @@ export default function BecomeHostPage() {
             connecting with participants.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/events/create">
+            <Link href="/dashboard/events/create">
               <Button className="gap-2">
                 <Calendar className="h-4 w-4" />
                 Create Event
