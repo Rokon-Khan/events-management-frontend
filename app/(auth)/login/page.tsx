@@ -51,7 +51,9 @@ export default function LoginPage() {
       </Link>
 
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold">Welcome back</h1>
+        <h1 className="text-3xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          Welcome back
+        </h1>
         <p className="text-muted-foreground">
           Enter your credentials to access your account
         </p>
@@ -128,7 +130,11 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <Button type="submit" className="w-full h-11" disabled={isLoading}>
+        <Button
+          type="submit"
+          className="w-full h-11 bg-linear-to-r from-blue-600 to-purple-600"
+          disabled={isLoading}
+        >
           {isLoading ? "Signing in..." : "Sign in"}
         </Button>
       </form>

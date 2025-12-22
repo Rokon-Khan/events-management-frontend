@@ -17,15 +17,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useAuth } from "@/lib/auth-context";
 import type { UserRole } from "@/lib/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Building,
-  Eye,
-  EyeOff,
-  Lock,
-  Mail,
-  Sparkles,
-  User,
-} from "lucide-react";
+import { Building, Eye, EyeOff, Lock, Mail, User } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -130,13 +123,21 @@ export default function RegisterPage() {
       {/* Mobile logo */}
       <Link href="/" className="flex items-center gap-2 lg:hidden">
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-          <Sparkles className="h-5 w-5 text-primary-foreground" />
+          {/* <Sparkles className="h-5 w-5 text-primary-foreground" /> */}
+          <Image
+            src="/event-hub-logo.png"
+            alt="EventHub Logo"
+            width={20}
+            height={20}
+          />
         </div>
         <span className="text-xl font-bold gradient-text">EventHub</span>
       </Link>
 
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold">Create an account</h1>
+        <h1 className="text-3xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          Create an account
+        </h1>
         <p className="text-muted-foreground">
           Join our community and start discovering events
         </p>
@@ -353,14 +354,14 @@ export default function RegisterPage() {
                     <FormLabel className="text-sm font-normal cursor-pointer">
                       I agree to the{" "}
                       <Link
-                        href="/terms"
+                        href="/terms-conditions"
                         className="text-primary hover:underline"
                       >
                         Terms of Service
                       </Link>{" "}
                       and{" "}
                       <Link
-                        href="/privacy"
+                        href="/privacy-policy"
                         className="text-primary hover:underline"
                       >
                         Privacy Policy
@@ -375,7 +376,7 @@ export default function RegisterPage() {
 
           <Button
             type="submit"
-            className="w-full h-11"
+            className="w-full h-11 bg-linear-to-r from-blue-600 to-purple-600"
             disabled={isLoading || !form.formState.isValid}
           >
             {isLoading ? "Creating account..." : "Create account"}
