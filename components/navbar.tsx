@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/lib/auth-context";
 import {
+  ArrowRightIcon,
   Calendar,
   Compass,
   LayoutDashboard,
@@ -208,10 +209,14 @@ export function Navbar() {
             ) : (
               <div className="hidden items-center gap-2 sm:flex">
                 <Link href="/login">
-                  <Button variant="ghost">Log in</Button>
+                  <Button variant="ghost">
+                    Log in <ArrowRightIcon className="h-4 w-4 ml-1" />
+                  </Button>
                 </Link>
                 <Link href="/register">
-                  <Button>Get Started</Button>
+                  <Button className="bg-linear-to-r from-blue-600 to-purple-600">
+                    Get Started
+                  </Button>
                 </Link>
               </div>
             )}

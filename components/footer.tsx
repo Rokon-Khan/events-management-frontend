@@ -42,7 +42,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/about"
+                  href="/about-us"
                   className="hover:text-foreground transition-colors"
                 >
                   About Us
@@ -50,10 +50,10 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/help"
+                  href="/privacy-policy"
                   className="hover:text-foreground transition-colors"
                 >
-                  Help Center
+                  Privacy Policy
                 </Link>
               </li>
             </ul>
