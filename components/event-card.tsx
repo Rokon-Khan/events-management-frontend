@@ -3,14 +3,21 @@
 import { GlowCard } from "@/components/glow-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import type { Event } from "@/lib/types";
-import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
 import { favouriteEventsApi } from "@/lib/favouriteEventsApi";
-import { Calendar, Clock, DollarSign, MapPin, Users, Heart } from "lucide-react";
+import type { Event } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import {
+  Calendar,
+  Clock,
+  DollarSign,
+  Heart,
+  MapPin,
+  Users,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 interface EventCardProps {
@@ -47,7 +54,9 @@ export function EventCard({ event, className }: EventCardProps) {
     try {
       const response = await favouriteEventsApi.getMyFavourites();
       if (response.success && response.data) {
-        const isFav = response.data.some((fav: any) => fav.eventId === event.id);
+        const isFav = response.data.some(
+          (fav: any) => fav.eventId === event.id
+        );
         setIsFavourite(isFav);
       }
     } catch (error) {
@@ -58,7 +67,7 @@ export function EventCard({ event, className }: EventCardProps) {
   const handleToggleFavourite = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (!user) {
       toast.error("Please log in to save events");
       return;
@@ -67,7 +76,9 @@ export function EventCard({ event, className }: EventCardProps) {
     setIsLoading(true);
     try {
       if (isFavourite) {
-        const response = await favouriteEventsApi.removeFromFavourites(event.id);
+        const response = await favouriteEventsApi.removeFromFavourites(
+          event.id
+        );
         if (response.success) {
           setIsFavourite(false);
           toast.success("Removed from favourites");
@@ -88,9 +99,7 @@ export function EventCard({ event, className }: EventCardProps) {
 
   return (
     <Link href={`/events/${event.id}`}>
-      <GlowCard
-        className={cn("group overflow-hidden p-0 cursor-pointer", className)}
-      >
+      <GlowCard className={cn("overflow-hidden p-0 cursor-pointer", className)}>
         <div className="relative aspect-16/10 overflow-hidden">
           <Image
             src={event.eventImage || "/placeholder.svg"}
@@ -115,14 +124,14 @@ export function EventCard({ event, className }: EventCardProps) {
               >
                 <Heart
                   className={`h-4 w-4 transition-colors ${
-                    isFavourite ? "fill-red-500 text-red-500" : "text-muted-foreground hover:text-red-500"
+                    isFavourite
+                      ? "fill-red-500 text-red-500"
+                      : "text-muted-foreground hover:text-red-500"
                   }`}
                 />
               </button>
             )}
-            {isFull && (
-              <Badge variant="destructive">Full</Badge>
-            )}
+            {isFull && <Badge variant="destructive">Full</Badge>}
           </div>
         </div>
 

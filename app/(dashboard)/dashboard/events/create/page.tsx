@@ -162,7 +162,7 @@ export default function CreateEventPage() {
 
       if (response.success) {
         toast.success("Event created successfully!");
-        router.push("/dashboard/my-events");
+        router.push("/dashboard/host-my-events");
       } else {
         toast.error(response.message || "Failed to create event");
       }

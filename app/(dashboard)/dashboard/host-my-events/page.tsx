@@ -32,11 +32,10 @@ import {
   MoreVertical,
   Plus,
   Search,
-  Trash2,
   Users,
 } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function MyEventsPage() {
@@ -81,12 +80,12 @@ export default function MyEventsPage() {
 
   const handleDelete = async () => {
     if (!deleteEventId) return;
-    
+
     try {
       const response = await eventApi.deleteEvent(deleteEventId);
       if (response.success) {
         toast.success("Event deleted successfully");
-        setEvents(events.filter(e => e.id !== deleteEventId));
+        setEvents(events.filter((e) => e.id !== deleteEventId));
       } else {
         toast.error(response.message || "Failed to delete event");
       }
@@ -111,7 +110,7 @@ export default function MyEventsPage() {
           </p>
         </div>
         {isHost && (
-          <Link href="/events/create">
+          <Link href="/dashboard/events/create">
             <Button className="gap-2">
               <Plus className="h-4 w-4" />
               Create Event
@@ -175,27 +174,29 @@ export default function MyEventsPage() {
                               View
                             </Link>
                           </DropdownMenuItem>
+                          <DropdownMenuSeparator />
                           <DropdownMenuItem asChild>
                             <Link
-                              href={`/events/edit/${event.id}`}
+                              href={`/dashboard/events/edit/${event.id}`}
                               className="flex items-center gap-2"
                             >
                               <Edit className="h-4 w-4" />
                               Edit
                             </Link>
                           </DropdownMenuItem>
+                          <DropdownMenuSeparator />
                           <DropdownMenuItem className="flex items-center gap-2">
                             <Users className="h-4 w-4" />
                             Participants ({event.currentParticipants})
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
+
+                          {/* <DropdownMenuItem
                             className="text-destructive focus:text-destructive flex items-center gap-2"
                             onClick={() => setDeleteEventId(event.id)}
                           >
                             <Trash2 className="h-4 w-4" />
                             Delete
-                          </DropdownMenuItem>
+                          </DropdownMenuItem> */}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
